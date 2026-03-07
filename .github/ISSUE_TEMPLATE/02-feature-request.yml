@@ -1,0 +1,79 @@
+name: Feature Request
+description: Request a new capability or user-visible enhancement.
+title: "[Feature] "
+labels:
+  - kind/feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the outcome you want, not the exact implementation.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Pick the primary owning surface.
+      options:
+        - frontend
+        - backend
+        - devops
+        - data
+        - docs
+        - cross-cutting
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One short paragraph describing the requested outcome.
+      placeholder: Add an export filter for archived invoices.
+    validations:
+      required: true
+  - type: textarea
+    id: background
+    attributes:
+      label: Background / Problem
+      description: What gap exists today, and why it matters.
+      placeholder: |
+        - Current limitation:
+        - Affected workflow or users:
+        - Why this matters now:
+    validations:
+      required: true
+  - type: textarea
+    id: desired-outcome
+    attributes:
+      label: Desired Outcome
+      description: What should users or operators be able to do after this lands.
+      placeholder: Users can filter export results to only archived invoices.
+    validations:
+      required: true
+  - type: textarea
+    id: in-scope
+    attributes:
+      label: In Scope
+      description: Boundaries for this issue.
+      placeholder: |
+        - Add archive filter to export UI.
+        - Support archive filter in export API.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Observable conditions that define done.
+      placeholder: |
+        - [ ] Filter is available in the export UI.
+        - [ ] Export results only include archived invoices when selected.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context / Links
+      description: Related docs, designs, PRs, or customer references.
+      placeholder: Doc link, design mock, support ticket, related issue
+    validations:
+      required: false

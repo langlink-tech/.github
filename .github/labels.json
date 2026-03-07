@@ -1,0 +1,67 @@
+[
+  {
+    "name": "kind/bug",
+    "color": "D73A4A",
+    "description": "Broken behavior that should be fixed."
+  },
+  {
+    "name": "kind/feature",
+    "color": "0E8A16",
+    "description": "New capability or user-visible enhancement."
+  },
+  {
+    "name": "kind/refactor",
+    "color": "FBCA04",
+    "description": "Structural cleanup without intended behavior change."
+  },
+  {
+    "name": "kind/chore",
+    "color": "5319E7",
+    "description": "Maintenance or internal engineering task."
+  },
+  {
+    "name": "kind/spike",
+    "color": "1D76DB",
+    "description": "Time-boxed investigation before committing to implementation."
+  },
+  {
+    "name": "priority/p0",
+    "color": "B60205",
+    "description": "Urgent production issue or blocked release."
+  },
+  {
+    "name": "priority/p1",
+    "color": "D93F0B",
+    "description": "Important work that should be scheduled soon."
+  },
+  {
+    "name": "priority/p2",
+    "color": "FBCA04",
+    "description": "Normal backlog priority."
+  },
+  {
+    "name": "area/frontend",
+    "color": "0052CC",
+    "description": "Frontend or client-facing work."
+  },
+  {
+    "name": "area/backend",
+    "color": "006B75",
+    "description": "Backend service or API work."
+  },
+  {
+    "name": "area/devops",
+    "color": "0B8F55",
+    "description": "Infrastructure, CI/CD, or operations work."
+  },
+  {
+    "name": "area/data",
+    "color": "5319E7",
+    "description": "Database, analytics, or reporting work."
+  },
+  {
+    "name": "area/docs",
+    "color": "0366D6",
+    "description": "Documentation or knowledge capture work."
+  }
+]

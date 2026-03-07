@@ -1,0 +1,69 @@
+name: Bug Report
+description: Report a broken behavior that should be tracked before implementation.
+title: "[Bug] "
+labels:
+  - kind/bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keep this focused on the problem. Implementation ideas can come later in the PR.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Pick the affected surface.
+      options:
+        - frontend
+        - backend
+        - devops
+        - data
+        - docs
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One short paragraph describing what is broken.
+      placeholder: Token refresh fails after 30 minutes of inactivity in the admin console.
+    validations:
+      required: true
+  - type: textarea
+    id: background
+    attributes:
+      label: Background / Problem
+      description: What happens now, who is affected, and why it matters.
+      placeholder: |
+        - Current behavior:
+        - Affected users or systems:
+        - Business or operational impact:
+    validations:
+      required: true
+  - type: textarea
+    id: desired-outcome
+    attributes:
+      label: Desired Outcome
+      description: What should be true after this is fixed.
+      placeholder: Users remain authenticated after idle periods without manual refresh.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Observable conditions that define done.
+      placeholder: |
+        - [ ] Session remains authenticated after 45 minutes of inactivity.
+        - [ ] Regression coverage is added.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context / Links
+      description: Related logs, screenshots, incidents, PRs, or docs.
+      placeholder: Sentry issue, screenshot, related PR, incident doc
+    validations:
+      required: false
