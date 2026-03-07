@@ -1,8 +1,7 @@
 name: Spike
 description: Track a time-boxed investigation before committing to implementation.
 title: "[Spike] "
-labels:
-  - kind/spike
+type: Spike
 body:
   - type: markdown
     attributes:

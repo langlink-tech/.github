@@ -1,8 +1,7 @@
 name: Refactor Task
 description: Track structural cleanup without intended behavior change.
 title: "[Refactor] "
-labels:
-  - kind/refactor
+type: Refactor
 body:
   - type: markdown
     attributes:

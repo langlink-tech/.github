@@ -1,8 +1,7 @@
 name: Chore Task
 description: Track maintenance, tooling, CI, scripts, or configuration work.
 title: "[Chore] "
-labels:
-  - kind/chore
+type: Chore
 body:
   - type: markdown
     attributes:

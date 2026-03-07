@@ -1,8 +1,7 @@
 name: Feature Request
 description: Request a new capability or user-visible enhancement.
 title: "[Feature] "
-labels:
-  - kind/feature
+type: Feature
 body:
   - type: markdown
     attributes:
