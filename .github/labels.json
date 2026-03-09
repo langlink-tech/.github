@@ -1,5 +1,30 @@
 [
   {
+    "name": "kind/bug",
+    "color": "D73A4A",
+    "description": "Broken behavior that should be fixed."
+  },
+  {
+    "name": "kind/feature",
+    "color": "0E8A16",
+    "description": "New capability or user-visible enhancement."
+  },
+  {
+    "name": "kind/refactor",
+    "color": "FBCA04",
+    "description": "Structural cleanup without intended behavior change."
+  },
+  {
+    "name": "kind/chore",
+    "color": "5319E7",
+    "description": "Maintenance or internal engineering task."
+  },
+  {
+    "name": "kind/spike",
+    "color": "1D76DB",
+    "description": "Time-boxed investigation before committing to implementation."
+  },
+  {
     "name": "priority/p0",
     "color": "B60205",
     "description": "Urgent production issue or blocked release."

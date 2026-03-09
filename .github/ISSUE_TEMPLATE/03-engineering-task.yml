@@ -1,12 +1,24 @@
-name: Refactor Task
-description: Track structural cleanup without intended behavior change.
-title: "[Refactor] "
-type: Refactor
+name: Engineering Task
+description: Track a refactor, chore, spike, or internal follow-up task.
+title: "[Task] "
+labels:
+  - kind/chore
 body:
   - type: markdown
     attributes:
       value: |
-        Use this when the goal is cleaner structure, lower risk, or easier maintenance without changing the intended product behavior.
+        Use this for refactors, technical debt, investigations, and internal follow-ups.
+  - type: dropdown
+    id: task-kind
+    attributes:
+      label: Task Type
+      options:
+        - refactor
+        - chore
+        - spike
+        - follow-up
+    validations:
+      required: true
   - type: dropdown
     id: area
     attributes:
@@ -24,7 +36,7 @@ body:
     id: summary
     attributes:
       label: Summary
-      description: One short paragraph describing the refactor task.
+      description: One short paragraph describing the task.
       placeholder: Consolidate duplicate retry logic in the sync worker.
     validations:
       required: true
@@ -32,10 +44,10 @@ body:
     id: motivation
     attributes:
       label: Motivation / Problem
-      description: What risk, duplication, or maintenance cost is this addressing.
+      description: What pain, risk, or debt is this addressing.
       placeholder: |
         - Existing duplication or risk:
-        - Why it should be addressed now:
+        - Why it should be addressed:
     validations:
       required: true
   - type: textarea
@@ -44,7 +56,7 @@ body:
       label: In Scope
       placeholder: |
         - Consolidate retry policy helpers.
-        - Update affected tests.
+        - Update affected worker tests.
     validations:
       required: true
   - type: textarea
@@ -52,15 +64,15 @@ body:
     attributes:
       label: Acceptance Criteria
       placeholder: |
-        - [ ] Duplicate implementations are removed.
-        - [ ] Intended behavior remains unchanged.
+        - [ ] Duplicate retry implementations are removed.
+        - [ ] Existing worker behavior remains unchanged.
     validations:
       required: true
   - type: textarea
     id: context
     attributes:
       label: Context / Links
-      description: Related issues, incidents, PRs, or review threads.
+      description: Related issues, incidents, or review threads.
       placeholder: Related PR review, incident doc, follow-up reference
     validations:
       required: false

@@ -1,7 +1,8 @@
 name: Bug Report
 description: Report a broken behavior that should be tracked before implementation.
 title: "[Bug] "
-type: Bug
+labels:
+  - kind/bug
 body:
   - type: markdown
     attributes:
