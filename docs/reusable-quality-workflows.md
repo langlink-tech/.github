@@ -33,6 +33,9 @@ jobs:
       build-command: pnpm build
 ```
 
+If a repository pins pnpm through `package.json#packageManager`, omit `package-manager-version`.
+Only pass `package-manager-version` for repositories that do not already declare pnpm that way.
+
 ## Python Workflow
 
 Supports:

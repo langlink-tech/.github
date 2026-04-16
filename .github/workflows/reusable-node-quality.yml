@@ -18,7 +18,7 @@ on:
       package-manager-version:
         required: false
         type: string
-        default: "10"
+        default: ""
       cache-dependency-path:
         required: true
         type: string
@@ -63,9 +63,14 @@ jobs:
           exit 1
 
       - uses: pnpm/action-setup@v5
-        if: inputs.package-manager == 'pnpm'
+        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version != ''
         with:
           version: ${{ inputs.package-manager-version }}
+          run_install: false
+
+      - uses: pnpm/action-setup@v5
+        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version == ''
+        with:
           run_install: false
 
       - uses: actions/setup-node@v6
@@ -95,9 +100,14 @@ jobs:
           exit 1
 
       - uses: pnpm/action-setup@v5
-        if: inputs.package-manager == 'pnpm'
+        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version != ''
         with:
           version: ${{ inputs.package-manager-version }}
+          run_install: false
+
+      - uses: pnpm/action-setup@v5
+        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version == ''
+        with:
           run_install: false
 
       - uses: actions/setup-node@v6
@@ -133,9 +143,14 @@ jobs:
           exit 1
 
       - uses: pnpm/action-setup@v5
-        if: inputs.package-manager == 'pnpm'
+        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version != ''
         with:
           version: ${{ inputs.package-manager-version }}
+          run_install: false
+
+      - uses: pnpm/action-setup@v5
+        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version == ''
+        with:
           run_install: false
 
       - uses: actions/setup-node@v6
@@ -165,9 +180,14 @@ jobs:
           exit 1
 
       - uses: pnpm/action-setup@v5
-        if: inputs.package-manager == 'pnpm'
+        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version != ''
         with:
           version: ${{ inputs.package-manager-version }}
+          run_install: false
+
+      - uses: pnpm/action-setup@v5
+        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version == ''
+        with:
           run_install: false
 
       - uses: actions/setup-node@v6
