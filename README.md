@@ -6,6 +6,8 @@ It contains:
 - shared issue forms
 - a shared pull request template
 - a shared label manifest in `.github/labels.json`
+- reusable quality workflows in `.github/workflows/`
+- repository contract guidance in `docs/repo-contract.md`
 - governance rollout notes in `docs/governance-rollout-checklist.md`
 
 Shared label taxonomy:
@@ -17,3 +19,7 @@ Notes:
 - repositories with their own `.github/ISSUE_TEMPLATE/` or `pull_request_template.md` override these defaults
 - `CODEOWNERS` does not inherit from this repo; each repository needs its own `.github/CODEOWNERS`
 - some existing repositories may still contain legacy `kind/*` labels for historical issues, but they are no longer part of the default baseline
+
+Reusable workflow entrypoints:
+- `langlink-tech/.github/.github/workflows/reusable-node-quality.yml@main`
+- `langlink-tech/.github/.github/workflows/reusable-python-quality.yml@main`

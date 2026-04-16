@@ -1,0 +1,174 @@
+name: Reusable Python Quality
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: false
+        type: string
+        default: "."
+      python-version:
+        required: false
+        type: string
+        default: "3.11"
+      installer:
+        required: false
+        type: string
+        default: "pip"
+      uv-version:
+        required: false
+        type: string
+        default: "0.11.6"
+      cache-dependency-path:
+        required: true
+        type: string
+      install-command:
+        required: true
+        type: string
+      lint-command:
+        required: false
+        type: string
+        default: ""
+      invariant-command:
+        required: false
+        type: string
+        default: ""
+      test-command:
+        required: false
+        type: string
+        default: ""
+      upload-source-artifact:
+        required: false
+        type: boolean
+        default: false
+      source-artifact-name:
+        required: false
+        type: string
+        default: repo-source
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    if: inputs.lint-command != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate installer
+        if: inputs.installer != 'pip' && inputs.installer != 'uv'
+        run: |
+          echo "::error::Unsupported installer '${{ inputs.installer }}'. Use 'pip' or 'uv'."
+          exit 1
+
+      - uses: actions/setup-python@v6
+        if: inputs.installer == 'pip'
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: pip
+          cache-dependency-path: ${{ inputs.cache-dependency-path }}
+
+      - uses: actions/setup-python@v6
+        if: inputs.installer == 'uv'
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - uses: astral-sh/setup-uv@v6
+        if: inputs.installer == 'uv'
+        with:
+          version: ${{ inputs.uv-version }}
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.install-command }}
+
+      - name: Run lint command
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.lint-command }}
+
+  invariants:
+    if: inputs.invariant-command != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate installer
+        if: inputs.installer != 'pip' && inputs.installer != 'uv'
+        run: |
+          echo "::error::Unsupported installer '${{ inputs.installer }}'. Use 'pip' or 'uv'."
+          exit 1
+
+      - uses: actions/setup-python@v6
+        if: inputs.installer == 'pip'
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: pip
+          cache-dependency-path: ${{ inputs.cache-dependency-path }}
+
+      - uses: actions/setup-python@v6
+        if: inputs.installer == 'uv'
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - uses: astral-sh/setup-uv@v6
+        if: inputs.installer == 'uv'
+        with:
+          version: ${{ inputs.uv-version }}
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.install-command }}
+
+      - name: Run invariant command
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.invariant-command }}
+
+  tests:
+    if: inputs.test-command != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate installer
+        if: inputs.installer != 'pip' && inputs.installer != 'uv'
+        run: |
+          echo "::error::Unsupported installer '${{ inputs.installer }}'. Use 'pip' or 'uv'."
+          exit 1
+
+      - uses: actions/setup-python@v6
+        if: inputs.installer == 'pip'
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: pip
+          cache-dependency-path: ${{ inputs.cache-dependency-path }}
+
+      - uses: actions/setup-python@v6
+        if: inputs.installer == 'uv'
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - uses: astral-sh/setup-uv@v6
+        if: inputs.installer == 'uv'
+        with:
+          version: ${{ inputs.uv-version }}
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.install-command }}
+
+      - name: Run test command
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.test-command }}
+
+      - name: Pack repository source for downstream checks
+        if: inputs.upload-source-artifact
+        run: git archive --format=tar.gz --output=repo-source.tgz HEAD
+
+      - uses: actions/upload-artifact@v4
+        if: inputs.upload-source-artifact
+        with:
+          name: ${{ inputs.source-artifact-name }}
+          path: repo-source.tgz
+          if-no-files-found: error
+          retention-days: 1
