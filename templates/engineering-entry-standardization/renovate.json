@@ -1,0 +1,22 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "Asia/Shanghai",
+  "schedule": ["before 6am on monday"],
+  "dependencyDashboard": true,
+  "minimumReleaseAge": "10 days",
+  "automerge": false,
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "description": "Group routine minor, patch, and digest updates.",
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "minor and patch dependency updates"
+    },
+    {
+      "description": "Keep major updates separate and high-risk.",
+      "matchUpdateTypes": ["major"],
+      "labels": ["dependencies", "major-update"]
+    }
+  ]
+}

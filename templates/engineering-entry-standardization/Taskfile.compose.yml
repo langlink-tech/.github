@@ -1,0 +1,56 @@
+version: '3'
+
+tasks:
+  dev:
+    desc: Explain the local development entrypoint.
+    cmds:
+      - |
+        echo "No repo-local dev server is defined for this compose-first repository."
+        echo "Use task docker:up for the compose stack."
+      - exit 1
+
+  test:
+    desc: Run repo tests where configured.
+    cmds:
+      - echo "No test entrypoint is configured for this repository."
+      - exit 1
+
+  lint:
+    desc: Run repo static checks where configured.
+    cmds:
+      - echo "No lint entrypoint is configured for this repository."
+      - exit 1
+
+  typecheck:
+    desc: Explain why this repository has no typecheck entrypoint.
+    cmds:
+      - echo "No typecheck entrypoint is configured for this repository."
+      - exit 1
+
+  build:
+    desc: Build compose images without starting services.
+    cmds:
+      - docker compose --env-file .env.example build
+
+  docker:config:
+    desc: Validate Docker Compose config without starting services.
+    cmds:
+      - docker compose --env-file .env.example config > /dev/null
+
+  docker:up:
+    desc: Start the repo-local compose stack.
+    cmds:
+      - docker compose up -d
+
+  ci:
+    desc: Run the current compose-first pull-request quality baseline locally.
+    cmds:
+      - task: docker:config
+
+  deploy:
+    desc: Explain why deployment is operator-gated by default.
+    cmds:
+      - |
+        echo "Deployment is operator-gated."
+        echo "Use the repo deployment workflow or runbook."
+      - exit 1

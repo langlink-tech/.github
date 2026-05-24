@@ -1,0 +1,56 @@
+version: '3'
+
+tasks:
+  dev:
+    desc: Start the repo-local development entrypoint.
+    cmds:
+      - pnpm dev
+
+  test:
+    desc: Run the repo test suite.
+    cmds:
+      - pnpm test
+
+  lint:
+    desc: Run repo static checks.
+    cmds:
+      - pnpm lint
+
+  typecheck:
+    desc: Run TypeScript type checks.
+    cmds:
+      - pnpm typecheck
+
+  build:
+    desc: Build the repo artifact.
+    cmds:
+      - pnpm build
+
+  docker:config:
+    desc: Explain why this repository has no compose config.
+    cmds:
+      - echo "No Docker Compose config is defined for this repository."
+      - exit 1
+
+  docker:up:
+    desc: Explain why this repository has no compose stack.
+    cmds:
+      - echo "No Docker Compose stack is defined for this repository."
+      - exit 1
+
+  ci:
+    desc: Run the current pull-request quality baseline locally.
+    cmds:
+      - pnpm install --frozen-lockfile
+      - task: lint
+      - task: typecheck
+      - task: test
+      - task: build
+
+  deploy:
+    desc: Explain why deployment is workflow-gated by default.
+    cmds:
+      - |
+        echo "No generic local deploy task is defined for this repository."
+        echo "Use the repo deployment workflow or runbook."
+      - exit 1

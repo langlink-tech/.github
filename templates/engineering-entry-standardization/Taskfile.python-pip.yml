@@ -1,0 +1,57 @@
+version: '3'
+
+tasks:
+  dev:
+    desc: Start the repo-local development entrypoint.
+    cmds:
+      - echo "Replace this with the repo-local Python development command."
+      - exit 1
+
+  test:
+    desc: Run the Python test suite.
+    cmds:
+      - python -m pytest tests/ -v --tb=short
+
+  lint:
+    desc: Run Python quality checks.
+    cmds:
+      - ruff check .
+
+  typecheck:
+    desc: Run Python type checks where configured.
+    cmds:
+      - echo "No typecheck entrypoint is configured for this repository."
+      - exit 1
+
+  build:
+    desc: Build repo artifacts where applicable.
+    cmds:
+      - echo "No build entrypoint is configured for this repository."
+      - exit 1
+
+  docker:config:
+    desc: Explain why this repository has no compose config.
+    cmds:
+      - echo "No Docker Compose config is defined for this repository."
+      - exit 1
+
+  docker:up:
+    desc: Explain why this repository has no compose stack.
+    cmds:
+      - echo "No Docker Compose stack is defined for this repository."
+      - exit 1
+
+  ci:
+    desc: Run the current pull-request quality baseline locally.
+    cmds:
+      - python -m pip install -r requirements.txt
+      - task: lint
+      - task: test
+
+  deploy:
+    desc: Explain why deployment is workflow-gated by default.
+    cmds:
+      - |
+        echo "No generic local deploy task is defined for this repository."
+        echo "Use the repo deployment workflow or runbook."
+      - exit 1
