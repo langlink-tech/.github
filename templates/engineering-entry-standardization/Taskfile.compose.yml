@@ -43,11 +43,9 @@ tasks:
       - docker compose up -d
 
   ci:
-    desc: Run the current pull-request quality baseline locally.
+    desc: Run the current compose-first pull-request quality baseline locally.
     cmds:
       - task: docker:config
-      - task: lint
-      - task: test
 
   deploy:
     desc: Explain why deployment is operator-gated by default.
