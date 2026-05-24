@@ -1,10 +1,19 @@
 # Engineering Entry Standardization
 
-This document defines the phase-one repo entrypoint contract for LangLink engineering repositories.
+This document defines the repo entrypoint contract for LangLink engineering repositories. It is based on the wave 1 and wave 2 rollout across monitoring, Node, Python, browser-extension, userscript, data, and infra repositories.
 
-## Phase-One Scope
+## Current Scope
 
-Phase one standardizes repo entrypoints without introducing new deployed services. Prometheus and Grafana remain the monitoring stack. Sentry, Uptime Kuma, Coolify, k3s, Argo CD, SOPS, and Loki stay out of scope for this phase.
+The current phase standardizes repo entrypoints without introducing new deployed services. Prometheus and Grafana remain the monitoring stack. Sentry, Uptime Kuma, Coolify, k3s, Argo CD, SOPS, and Loki stay out of scope for this phase.
+
+The shared templates live in `templates/engineering-entry-standardization/`:
+
+- `Taskfile.node.yml`: Node.js and pnpm repositories.
+- `Taskfile.python-uv.yml`: Python repositories using `uv`.
+- `Taskfile.python-pip.yml`: Python repositories using `pip` and `requirements.txt`.
+- `Taskfile.compose.yml`: Compose-first infra or monitoring repositories.
+- `renovate.json`: conservative Renovate baseline.
+- `verification-checklist.md`: local and PR verification checklist.
 
 ## Taskfile Contract
 
@@ -24,9 +33,24 @@ If a task is not applicable, it must fail with a clear message instead of succee
 
 `mise.toml` remains responsible for tool versions. `Taskfile.yml` is responsible for action orchestration. `.env.example` remains the readable environment contract. Runtime secrets stay in Infisical or machine-local state.
 
+`task ci` must wrap the current pull-request baseline. It should not invent a stricter gate unless that stricter gate is already accepted by the repo.
+
+## Template Selection
+
+Use the closest template and adapt commands to existing repo scripts:
+
+| Repo shape | Start from | `task ci` should wrap |
+| --- | --- | --- |
+| Node/pnpm app, CLI, extension, or userscript | `Taskfile.node.yml` | `pnpm install --frozen-lockfile` plus existing lint/typecheck/test/build scripts |
+| Python with `uv.lock` or `pyproject.toml` and `uv` workflow | `Taskfile.python-uv.yml` | `uv sync --locked` plus existing ruff/mypy/pytest gates |
+| Python with `requirements.txt` and pip workflow | `Taskfile.python-pip.yml` | pip install plus existing lint/test gates |
+| Compose-first infra or monitoring repo | `Taskfile.compose.yml` | compose config plus existing shell, rules, dashboard, or smoke checks |
+
+For browser-extension and userscript repos, keep packaging or build artifact checks inside `task ci` when GitHub Actions already requires them. If the repo has Docker Compose, replace the default no-compose `docker:*` tasks with config validation and stack startup commands.
+
 ## Renovate Contract
 
-Each pilot repo uses `renovate.json` with conservative defaults:
+Each governed repo uses `renovate.json` with conservative defaults:
 
 - Weekly schedule in the `Asia/Shanghai` timezone.
 - `minimumReleaseAge` set to `10 days`.
@@ -37,9 +61,19 @@ Each pilot repo uses `renovate.json` with conservative defaults:
 
 Renovate PRs must pass the repo's normal CI. Renovate must not bypass branch protection or required checks.
 
+## Rollout Checklist
+
+Before opening a PR:
+
+- Copy the closest Taskfile template to `Taskfile.yml`.
+- Copy `templates/engineering-entry-standardization/renovate.json`.
+- Replace placeholder commands with existing repo-local scripts.
+- Run `templates/engineering-entry-standardization/verification-checklist.md`.
+- Keep generated artifacts out of the PR unless the repo already requires generated outputs to be committed.
+
 ## Logging And Future Loki Contract
 
-Loki is not deployed in phase one. Repositories should still prefer structured logs that can be safely shipped later:
+Loki is not deployed in this phase. Repositories should still prefer structured logs that can be safely shipped later:
 
 - `timestamp`
 - `service`

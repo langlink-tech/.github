@@ -7,6 +7,7 @@ It contains:
 - a shared pull request template
 - a shared label manifest in `.github/labels.json`
 - reusable quality workflows in `.github/workflows/`
+- engineering entrypoint templates in `templates/engineering-entry-standardization/`
 - repository contract guidance in `docs/repo-contract.md`
 - governance rollout notes in `docs/governance-rollout-checklist.md`
 
@@ -23,3 +24,11 @@ Notes:
 Reusable workflow entrypoints:
 - `langlink-tech/.github/.github/workflows/reusable-node-quality.yml@main`
 - `langlink-tech/.github/.github/workflows/reusable-python-quality.yml@main`
+
+Engineering entrypoint templates:
+- `templates/engineering-entry-standardization/Taskfile.node.yml`
+- `templates/engineering-entry-standardization/Taskfile.python-uv.yml`
+- `templates/engineering-entry-standardization/Taskfile.python-pip.yml`
+- `templates/engineering-entry-standardization/Taskfile.compose.yml`
+- `templates/engineering-entry-standardization/renovate.json`
+- `templates/engineering-entry-standardization/verification-checklist.md`
