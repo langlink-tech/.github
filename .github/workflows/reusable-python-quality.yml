@@ -74,7 +74,7 @@ jobs:
         with:
           python-version: ${{ inputs.python-version }}
 
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v8.2.0
         if: inputs.installer == 'uv'
         with:
           version: ${{ inputs.uv-version }}
@@ -111,7 +111,7 @@ jobs:
         with:
           python-version: ${{ inputs.python-version }}
 
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v8.2.0
         if: inputs.installer == 'uv'
         with:
           version: ${{ inputs.uv-version }}
@@ -148,7 +148,7 @@ jobs:
         with:
           python-version: ${{ inputs.python-version }}
 
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v8.2.0
         if: inputs.installer == 'uv'
         with:
           version: ${{ inputs.uv-version }}
@@ -165,7 +165,7 @@ jobs:
         if: inputs.upload-source-artifact
         run: git archive --format=tar.gz --output=repo-source.tgz HEAD
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: inputs.upload-source-artifact
         with:
           name: ${{ inputs.source-artifact-name }}

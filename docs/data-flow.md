@@ -96,7 +96,7 @@ Flow:
    - install, lint, invariant, and test commands
    - optional artifact upload toggle
 3. Each enabled job performs checkout, installer validation, runtime setup, dependency install, and the job-specific command.
-4. When `upload-source-artifact` is true, the `tests` job archives `HEAD` into `repo-source.tgz` and uploads it with `actions/upload-artifact@v4`.
+4. When `upload-source-artifact` is true, the `tests` job archives `HEAD` into `repo-source.tgz` and uploads it with `actions/upload-artifact@v6`.
 
 This flow turns repo-local quality commands into a shared execution shape without centralizing package manifests or source code in this repository.
 
