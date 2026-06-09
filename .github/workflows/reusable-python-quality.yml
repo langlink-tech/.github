@@ -78,6 +78,7 @@ jobs:
         if: inputs.installer == 'uv'
         with:
           version: ${{ inputs.uv-version }}
+          cache-suffix: lint
 
       - name: Install dependencies
         working-directory: ${{ inputs.working-directory }}
@@ -115,6 +116,7 @@ jobs:
         if: inputs.installer == 'uv'
         with:
           version: ${{ inputs.uv-version }}
+          cache-suffix: invariants
 
       - name: Install dependencies
         working-directory: ${{ inputs.working-directory }}
@@ -152,6 +154,7 @@ jobs:
         if: inputs.installer == 'uv'
         with:
           version: ${{ inputs.uv-version }}
+          cache-suffix: tests
 
       - name: Install dependencies
         working-directory: ${{ inputs.working-directory }}
