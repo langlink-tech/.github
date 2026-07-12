@@ -38,7 +38,7 @@
 CLI mirror example (values never echoed):
 
 ```bash
-infisical run --env=dev --path=/github-apps -- \
+infisical run --env=prod --path=/ -- \
   gh variable set LANGLINK_CI_READ_APP_ID --repo langlink-tech/<repo> --body "$LANGLINK_CI_READ_APP_ID"
 # private key via: gh secret set ... < pem-file from Infisical export
 ```
