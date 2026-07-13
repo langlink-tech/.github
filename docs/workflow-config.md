@@ -1,6 +1,7 @@
-# Config
+# Workflow Config
 
-This repository mixes committed configuration files with documented operator settings. The list below is based on local files only.
+This page documents the committed configuration surface for reusable workflows
+and the shared label taxonomy in `langlink-tech/.github`.
 
 ## Committed Config Sources
 
@@ -13,11 +14,9 @@ This repository mixes committed configuration files with documented operator set
 | `.github/ISSUE_TEMPLATE/03-engineering-task.yml` | Engineering task form | Default label `kind/chore`; required fields for `task-kind`, `area`, `summary`, `motivation`, `in-scope`, `acceptance-criteria` |
 | `.github/pull_request_template.md` | PR submission contract | Sections for summary, related issue, change type, checklist, and test plan |
 | `.github/labels.json` | Label taxonomy | `kind/*`, `priority/*`, `area/*` labels with names, colors, and descriptions |
-| `.github/CODEOWNERS` | Ownership for this repo | Fallback owner is `@langlink-localization`; file comment says team-based ownership should replace this when real teams exist |
 | `.github/workflows/reusable-node-quality.yml` | Shared Node CI contract | Reusable workflow with `workflow_call` inputs and `contents: read` permission |
 | `.github/workflows/reusable-python-quality.yml` | Shared Python CI contract | Reusable workflow with `workflow_call` inputs and `contents: read` permission |
 | `docs/repo-contract.md` | Required repo contract | Defines required files, local command entrypoints, repo archetypes, and the rule to prefer reusable workflows |
-| `docs/governance-rollout-checklist.md` | Rollout target state | Defines push order, Project workflow values, merge settings, repo checklist, and monthly drift checks |
 
 ## Reusable Workflow Input Contracts
 
@@ -73,23 +72,20 @@ Behavior gates:
 - `priority/*`: p0, p1, p2
 - `area/*`: backend, frontend, devops, data, docs
 
-`.github/labels.json` is the committed source for those labels. The issue forms consume part of that taxonomy immediately through default `kind/*` labels and area dropdowns, but the forms do not assign area labels automatically.
-
-## Documented But Non-Committed Settings
-
-Some governance settings are configuration targets, but they are not encoded as YAML in this repo. `docs/governance-rollout-checklist.md` documents them as operator-applied state:
-
-- `Plunet Platform` Project workflow transitions such as `Item added to project -> Status = Todo`
-- repo merge policy for the current solo phase
-- whether code-owner reviews are required
-- monthly drift-audit expectations
-
-Treat these as configuration that is documented here and executed in GitHub UI.
+`.github/labels.json` is the committed source for those labels. The issue forms
+consume part of that taxonomy immediately through default `kind/*` labels and
+area dropdowns, but the forms do not assign area labels automatically.
 
 ## Override Rules
 
-The committed files define the baseline, not total control. Based on `README.md` and `docs/repo-contract.md`:
+The committed files define the baseline, not total control. Based on
+`README.md` and `docs/repo-contract.md`:
 
-- a consuming repo may override shared issue forms and the PR template by committing its own files
+- a consuming repo may override shared issue forms and the PR template by
+  committing its own files
 - every consuming repo must provide its own `.github/CODEOWNERS`
-- repo-specific CI jobs remain in the consuming repo when they check domain invariants, deployment packaging, or environment-specific smoke behavior
+- repo-specific CI jobs remain in the consuming repo when they check domain
+  invariants, deployment packaging, or environment-specific smoke behavior
+
+Maintainer-only rollout and operator settings live in the private
+`langlink-tech/plunet-governance` repository under `docs/github-org/`.

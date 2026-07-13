@@ -9,7 +9,7 @@ It contains:
 - reusable quality workflows in `.github/workflows/`
 - engineering entrypoint templates in `templates/engineering-entry-standardization/`
 - repository contract guidance in `docs/repo-contract.md`
-- governance rollout notes in `docs/governance-rollout-checklist.md`
+- reusable workflow config in `docs/workflow-config.md`
 
 Shared label taxonomy:
 - `kind/*`: bug, feature, refactor, chore, spike
@@ -20,6 +20,7 @@ Notes:
 - repositories with their own `.github/ISSUE_TEMPLATE/` or `pull_request_template.md` override these defaults
 - `CODEOWNERS` does not inherit from this repo; each repository needs its own `.github/CODEOWNERS`
 - some existing repositories may still contain legacy `kind/*` labels for historical issues, but they are no longer part of the default baseline
+- maintainer rollout, migration, and operator docs live in the private `langlink-tech/plunet-governance` repo under `docs/github-org/`
 
 Reusable workflow entrypoints:
 - `langlink-tech/.github/.github/workflows/reusable-node-quality.yml@main`
