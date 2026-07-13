@@ -44,7 +44,7 @@ Flow:
    change, verification checklist, and test plan.
 
 Merge policy and Project automation are operator settings documented in the
-private `langlink-tech/plunet-governance` repository.
+private governance control plane.
 
 ## 3. Reusable Node Quality Flow
 

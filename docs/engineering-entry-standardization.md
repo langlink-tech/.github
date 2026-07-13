@@ -1,10 +1,10 @@
 # Engineering Entry Standardization
 
-This document defines the repo entrypoint contract for LangLink engineering repositories. It is based on the wave 1 and wave 2 rollout across monitoring, Node, Python, browser-extension, userscript, data, and infra repositories.
+This document defines the repo entrypoint contract for LangLink engineering repositories.
 
 ## Current Scope
 
-The current phase standardizes repo entrypoints without introducing new deployed services. Prometheus and Grafana remain the monitoring stack. Sentry, Uptime Kuma, Coolify, k3s, Argo CD, SOPS, and Loki stay out of scope for this phase.
+The current phase standardizes repo entrypoints without introducing new deployed services. Existing monitoring, deployment, and platform tooling stay out of scope unless a repository already depends on them.
 
 The shared templates live in `templates/engineering-entry-standardization/`:
 
@@ -31,7 +31,7 @@ Repositories should expose a `Taskfile.yml` using Taskfile schema version `3`. T
 
 If a task is not applicable, it must fail with a clear message instead of succeeding silently.
 
-`mise.toml` remains responsible for tool versions. `Taskfile.yml` is responsible for action orchestration. `.env.example` remains the readable environment contract. Runtime secrets stay in Infisical or machine-local state.
+`mise.toml` remains responsible for tool versions. `Taskfile.yml` is responsible for action orchestration. `.env.example` remains the readable environment contract. Runtime secrets stay in the org secret manager or machine-local state.
 
 `task ci` must wrap the current pull-request baseline. It should not invent a stricter gate unless that stricter gate is already accepted by the repo.
 
@@ -61,7 +61,7 @@ Each governed repo uses `renovate.json` with conservative defaults:
 
 Renovate PRs must pass the repo's normal CI. Renovate must not bypass branch protection or required checks.
 
-## Rollout Checklist
+## Adoption Checklist
 
 Before opening a PR:
 
