@@ -1,6 +1,6 @@
 # Repo Contract
 
-Use this baseline for new repositories and first-wave cleanup of active ones.
+Use this baseline for new repositories and initial cleanup of active ones.
 
 ## Required Files
 

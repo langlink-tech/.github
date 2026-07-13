@@ -87,5 +87,5 @@ The committed files define the baseline, not total control. Based on
 - repo-specific CI jobs remain in the consuming repo when they check domain
   invariants, deployment packaging, or environment-specific smoke behavior
 
-Maintainer-only rollout and operator settings live in the private
-`langlink-tech/plunet-governance` repository under `docs/github-org/`.
+Maintainer-only rollout and operator settings are documented in the private
+governance control plane, not in this public repository.

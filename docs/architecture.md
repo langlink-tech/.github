@@ -48,8 +48,8 @@ This repo does not own:
 - repo-specific deployment or domain checks
 - GitHub UI state such as Project workflow automation and branch protection
 
-Maintainer rollout order and operator settings live in the private
-`langlink-tech/plunet-governance` repository under `docs/github-org/`.
+Maintainer rollout order and operator settings are documented in the private
+governance control plane, not in this public repository.
 
 ## Reuse Model
 
