@@ -1,16 +1,31 @@
 # Public Workspace Optimization Summary
 
-- Status: proposed; no implementation is authorized by this document
+- Status: active planning; no implementation is authorized by this document
 - Owning repository: `langlink-tech/.github`
 - Portfolio priority: P0
 - Scope: public organization governance and reusable repository interfaces
 - Baseline date: 2026-07-13, Asia/Shanghai
+- Last reassessed: 2026-07-15, Asia/Shanghai
 
 This public summary covers only reusable policy and organization-level
 interfaces owned by this repository. Repository-specific risk inventories,
 private rollout details, authentication inventories, runtime evidence, and
 internal identifiers belong in access-controlled repository or governance
 records.
+
+## Reassessment — 2026-07-15
+
+- The sanitized public summary is published on the default branch. The current
+  document contains no repository risk inventory, machine-local path, internal
+  project identifier, runtime auth state, or value-bearing environment detail.
+- The sampled default-branch check rollup succeeded. That does not prove that
+  all organization repositories enforce the same required checks or immutable
+  reusable-workflow refs.
+- The next bounded public package is a caller/version inventory plus low-noise
+  governance-drift reporting. Private identity, permission, and runtime
+  evidence remains outside this public repository.
+- Financial ROI remains unknown until consumer count, rotation effort,
+  incidents, and recovery time are measured.
 
 ## Goal
 
@@ -122,8 +137,9 @@ secret-like material.
 - Impact score: 95.
 - Benefit evidence confidence: High.
 - Financial ROI: unknown.
-- First executable action: review and sanitize the public planning surface,
-  then track versioned workflow adoption through an approved issue.
+- First executable action: verify the private identity-migration closeout, then
+  inventory/version reusable workflow consumers and define low-noise
+  governance-drift checks through an approved issue.
 - Required baseline inputs: consumer count, workflow migrations, rotations,
   authentication failures, repair hours, implementation cost, and maintenance
   effort.
