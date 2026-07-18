@@ -69,7 +69,7 @@ Behavior gates:
 - only `pnpm` and `npm` are accepted
 - jobs run only when their corresponding command input is non-empty
 - test sharding is implemented through a job matrix and `TEST_SHARD`
-- setup is provided by `.github/actions/setup-node-pnpm`
+- setup is provided by `langlink-tech/.github/.github/actions/setup-node-pnpm@quality-workflows-v1` (fully qualified; relative `./` paths resolve against the caller and break cross-repo reuse)
 
 ### `reusable-python-quality.yml`
 
@@ -93,7 +93,7 @@ Behavior gates:
 - only `pip` and `uv` are accepted
 - the `invariants` job exists only when `invariant-command` is provided
 - source packaging happens only in the `tests` job and only when artifact upload is enabled
-- setup is provided by `.github/actions/setup-python-tooling`
+- setup is provided by `langlink-tech/.github/.github/actions/setup-python-tooling@quality-workflows-v1`
 
 ## Taxonomy Config
 

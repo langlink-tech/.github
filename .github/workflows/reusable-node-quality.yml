@@ -66,7 +66,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-node-pnpm
+      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@quality-workflows-v1
         with:
           working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
@@ -92,7 +92,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-node-pnpm
+      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@quality-workflows-v1
         with:
           working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
@@ -112,7 +112,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-node-pnpm
+      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@quality-workflows-v1
         with:
           working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
@@ -138,7 +138,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-node-pnpm
+      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@quality-workflows-v1
         with:
           working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
@@ -158,7 +158,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-node-pnpm
+      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@quality-workflows-v1
         with:
           working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}

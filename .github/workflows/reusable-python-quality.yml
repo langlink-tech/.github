@@ -61,7 +61,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-python-tooling
+      - uses: langlink-tech/.github/.github/actions/setup-python-tooling@quality-workflows-v1
         with:
           working-directory: ${{ inputs.working-directory }}
           python-version: ${{ inputs.python-version }}
@@ -82,7 +82,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-python-tooling
+      - uses: langlink-tech/.github/.github/actions/setup-python-tooling@quality-workflows-v1
         with:
           working-directory: ${{ inputs.working-directory }}
           python-version: ${{ inputs.python-version }}
@@ -103,7 +103,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-python-tooling
+      - uses: langlink-tech/.github/.github/actions/setup-python-tooling@quality-workflows-v1
         with:
           working-directory: ${{ inputs.working-directory }}
           python-version: ${{ inputs.python-version }}
