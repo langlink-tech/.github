@@ -45,80 +45,81 @@ on:
         required: false
         type: string
         default: ""
+      timeout-minutes:
+        required: false
+        type: number
+        default: 20
+      combine-static-checks:
+        description: When true, run lint and typecheck in one job to reduce runner queue tax
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
-  lint:
-    if: inputs.lint-command != ''
+  static-checks:
+    if: ${{ inputs.combine-static-checks && (inputs.lint-command != '' || inputs.typecheck-command != '') }}
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate package manager
-        if: inputs.package-manager != 'pnpm' && inputs.package-manager != 'npm'
-        run: |
-          echo "::error::Unsupported package manager '${{ inputs.package-manager }}'. Use 'pnpm' or 'npm'."
-          exit 1
-
-      - uses: pnpm/action-setup@v5
-        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version != ''
+      - uses: ./.github/actions/setup-node-pnpm
         with:
-          version: ${{ inputs.package-manager-version }}
-          run_install: false
-
-      - uses: pnpm/action-setup@v5
-        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version == ''
-        with:
-          run_install: false
-
-      - uses: actions/setup-node@v6
-        with:
+          working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
-          cache: ${{ inputs.package-manager == 'pnpm' && 'pnpm' || 'npm' }}
+          package-manager: ${{ inputs.package-manager }}
+          package-manager-version: ${{ inputs.package-manager-version }}
           cache-dependency-path: ${{ inputs.cache-dependency-path }}
+          install-command: ${{ inputs.install-command }}
 
-      - name: Install dependencies
+      - name: Run lint command
+        if: ${{ inputs.lint-command != '' }}
         working-directory: ${{ inputs.working-directory }}
-        run: ${{ inputs.install-command }}
+        run: ${{ inputs.lint-command }}
+
+      - name: Run typecheck command
+        if: ${{ inputs.typecheck-command != '' }}
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.typecheck-command }}
+
+  lint:
+    if: ${{ inputs.combine-static-checks == false && inputs.lint-command != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-node-pnpm
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          node-version: ${{ inputs.node-version }}
+          package-manager: ${{ inputs.package-manager }}
+          package-manager-version: ${{ inputs.package-manager-version }}
+          cache-dependency-path: ${{ inputs.cache-dependency-path }}
+          install-command: ${{ inputs.install-command }}
 
       - name: Run lint command
         working-directory: ${{ inputs.working-directory }}
         run: ${{ inputs.lint-command }}
 
   typecheck:
-    if: inputs.typecheck-command != ''
+    if: ${{ inputs.combine-static-checks == false && inputs.typecheck-command != '' }}
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate package manager
-        if: inputs.package-manager != 'pnpm' && inputs.package-manager != 'npm'
-        run: |
-          echo "::error::Unsupported package manager '${{ inputs.package-manager }}'. Use 'pnpm' or 'npm'."
-          exit 1
-
-      - uses: pnpm/action-setup@v5
-        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version != ''
+      - uses: ./.github/actions/setup-node-pnpm
         with:
-          version: ${{ inputs.package-manager-version }}
-          run_install: false
-
-      - uses: pnpm/action-setup@v5
-        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version == ''
-        with:
-          run_install: false
-
-      - uses: actions/setup-node@v6
-        with:
+          working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
-          cache: ${{ inputs.package-manager == 'pnpm' && 'pnpm' || 'npm' }}
+          package-manager: ${{ inputs.package-manager }}
+          package-manager-version: ${{ inputs.package-manager-version }}
           cache-dependency-path: ${{ inputs.cache-dependency-path }}
-
-      - name: Install dependencies
-        working-directory: ${{ inputs.working-directory }}
-        run: ${{ inputs.install-command }}
+          install-command: ${{ inputs.install-command }}
 
       - name: Run typecheck command
         working-directory: ${{ inputs.working-directory }}
@@ -127,6 +128,7 @@ jobs:
   tests:
     if: inputs.test-command != ''
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     strategy:
       fail-fast: false
       matrix:
@@ -136,32 +138,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate package manager
-        if: inputs.package-manager != 'pnpm' && inputs.package-manager != 'npm'
-        run: |
-          echo "::error::Unsupported package manager '${{ inputs.package-manager }}'. Use 'pnpm' or 'npm'."
-          exit 1
-
-      - uses: pnpm/action-setup@v5
-        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version != ''
+      - uses: ./.github/actions/setup-node-pnpm
         with:
-          version: ${{ inputs.package-manager-version }}
-          run_install: false
-
-      - uses: pnpm/action-setup@v5
-        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version == ''
-        with:
-          run_install: false
-
-      - uses: actions/setup-node@v6
-        with:
+          working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
-          cache: ${{ inputs.package-manager == 'pnpm' && 'pnpm' || 'npm' }}
+          package-manager: ${{ inputs.package-manager }}
+          package-manager-version: ${{ inputs.package-manager-version }}
           cache-dependency-path: ${{ inputs.cache-dependency-path }}
-
-      - name: Install dependencies
-        working-directory: ${{ inputs.working-directory }}
-        run: ${{ inputs.install-command }}
+          install-command: ${{ inputs.install-command }}
 
       - name: Run test command
         working-directory: ${{ inputs.working-directory }}
@@ -170,35 +154,18 @@ jobs:
   build:
     if: inputs.build-command != ''
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate package manager
-        if: inputs.package-manager != 'pnpm' && inputs.package-manager != 'npm'
-        run: |
-          echo "::error::Unsupported package manager '${{ inputs.package-manager }}'. Use 'pnpm' or 'npm'."
-          exit 1
-
-      - uses: pnpm/action-setup@v5
-        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version != ''
+      - uses: ./.github/actions/setup-node-pnpm
         with:
-          version: ${{ inputs.package-manager-version }}
-          run_install: false
-
-      - uses: pnpm/action-setup@v5
-        if: inputs.package-manager == 'pnpm' && inputs.package-manager-version == ''
-        with:
-          run_install: false
-
-      - uses: actions/setup-node@v6
-        with:
+          working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
-          cache: ${{ inputs.package-manager == 'pnpm' && 'pnpm' || 'npm' }}
+          package-manager: ${{ inputs.package-manager }}
+          package-manager-version: ${{ inputs.package-manager-version }}
           cache-dependency-path: ${{ inputs.cache-dependency-path }}
-
-      - name: Install dependencies
-        working-directory: ${{ inputs.working-directory }}
-        run: ${{ inputs.install-command }}
+          install-command: ${{ inputs.install-command }}
 
       - name: Run build command
         working-directory: ${{ inputs.working-directory }}

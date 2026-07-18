@@ -34,4 +34,7 @@ Optional but strongly recommended:
 ## Shared CI Principle
 
 - Prefer calling reusable workflows from `langlink-tech/.github` instead of copying job definitions into each repo.
+- Pin reusable workflows to a reviewed tag (for example `@quality-workflows-v1`) or immutable SHA. Do not leave active consumers on mutable `@main`.
 - Keep repo-specific jobs only for domain invariants, deployment packaging, contract checks, or environment-specific smoke tests.
+- Every CI/CD workflow should set least-privilege `permissions`, `concurrency` with `cancel-in-progress` for PR runs, and `timeout-minutes` on quality jobs.
+- Complex monorepos may keep local orchestration (for example change detection) and still share setup composites from `langlink-tech/.github`.

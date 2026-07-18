@@ -45,6 +45,10 @@ on:
         required: false
         type: string
         default: repo-source
+      timeout-minutes:
+        required: false
+        type: number
+        default: 20
 
 permissions:
   contents: read
@@ -53,36 +57,19 @@ jobs:
   lint:
     if: inputs.lint-command != ''
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate installer
-        if: inputs.installer != 'pip' && inputs.installer != 'uv'
-        run: |
-          echo "::error::Unsupported installer '${{ inputs.installer }}'. Use 'pip' or 'uv'."
-          exit 1
-
-      - uses: actions/setup-python@v6
-        if: inputs.installer == 'pip'
+      - uses: ./.github/actions/setup-python-tooling
         with:
+          working-directory: ${{ inputs.working-directory }}
           python-version: ${{ inputs.python-version }}
-          cache: pip
+          installer: ${{ inputs.installer }}
+          uv-version: ${{ inputs.uv-version }}
           cache-dependency-path: ${{ inputs.cache-dependency-path }}
-
-      - uses: actions/setup-python@v6
-        if: inputs.installer == 'uv'
-        with:
-          python-version: ${{ inputs.python-version }}
-
-      - uses: astral-sh/setup-uv@v8.2.0
-        if: inputs.installer == 'uv'
-        with:
-          version: ${{ inputs.uv-version }}
+          install-command: ${{ inputs.install-command }}
           cache-suffix: lint
-
-      - name: Install dependencies
-        working-directory: ${{ inputs.working-directory }}
-        run: ${{ inputs.install-command }}
 
       - name: Run lint command
         working-directory: ${{ inputs.working-directory }}
@@ -91,36 +78,19 @@ jobs:
   invariants:
     if: inputs.invariant-command != ''
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate installer
-        if: inputs.installer != 'pip' && inputs.installer != 'uv'
-        run: |
-          echo "::error::Unsupported installer '${{ inputs.installer }}'. Use 'pip' or 'uv'."
-          exit 1
-
-      - uses: actions/setup-python@v6
-        if: inputs.installer == 'pip'
+      - uses: ./.github/actions/setup-python-tooling
         with:
+          working-directory: ${{ inputs.working-directory }}
           python-version: ${{ inputs.python-version }}
-          cache: pip
+          installer: ${{ inputs.installer }}
+          uv-version: ${{ inputs.uv-version }}
           cache-dependency-path: ${{ inputs.cache-dependency-path }}
-
-      - uses: actions/setup-python@v6
-        if: inputs.installer == 'uv'
-        with:
-          python-version: ${{ inputs.python-version }}
-
-      - uses: astral-sh/setup-uv@v8.2.0
-        if: inputs.installer == 'uv'
-        with:
-          version: ${{ inputs.uv-version }}
+          install-command: ${{ inputs.install-command }}
           cache-suffix: invariants
-
-      - name: Install dependencies
-        working-directory: ${{ inputs.working-directory }}
-        run: ${{ inputs.install-command }}
 
       - name: Run invariant command
         working-directory: ${{ inputs.working-directory }}
@@ -129,36 +99,19 @@ jobs:
   tests:
     if: inputs.test-command != ''
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate installer
-        if: inputs.installer != 'pip' && inputs.installer != 'uv'
-        run: |
-          echo "::error::Unsupported installer '${{ inputs.installer }}'. Use 'pip' or 'uv'."
-          exit 1
-
-      - uses: actions/setup-python@v6
-        if: inputs.installer == 'pip'
+      - uses: ./.github/actions/setup-python-tooling
         with:
+          working-directory: ${{ inputs.working-directory }}
           python-version: ${{ inputs.python-version }}
-          cache: pip
+          installer: ${{ inputs.installer }}
+          uv-version: ${{ inputs.uv-version }}
           cache-dependency-path: ${{ inputs.cache-dependency-path }}
-
-      - uses: actions/setup-python@v6
-        if: inputs.installer == 'uv'
-        with:
-          python-version: ${{ inputs.python-version }}
-
-      - uses: astral-sh/setup-uv@v8.2.0
-        if: inputs.installer == 'uv'
-        with:
-          version: ${{ inputs.uv-version }}
+          install-command: ${{ inputs.install-command }}
           cache-suffix: tests
-
-      - name: Install dependencies
-        working-directory: ${{ inputs.working-directory }}
-        run: ${{ inputs.install-command }}
 
       - name: Run test command
         working-directory: ${{ inputs.working-directory }}

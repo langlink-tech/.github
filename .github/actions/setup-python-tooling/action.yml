@@ -1,0 +1,63 @@
+name: Setup Python tooling
+description: Set up Python with pip or uv caching and install dependencies
+
+inputs:
+  working-directory:
+    description: Working directory for install
+    required: false
+    default: "."
+  python-version:
+    description: Python version
+    required: false
+    default: "3.11"
+  installer:
+    description: Installer (pip or uv)
+    required: false
+    default: "pip"
+  uv-version:
+    description: uv version when installer is uv
+    required: false
+    default: "0.11.6"
+  cache-dependency-path:
+    description: Dependency path(s) for pip cache
+    required: true
+  install-command:
+    description: Command used to install dependencies
+    required: true
+  cache-suffix:
+    description: Optional uv cache suffix for job isolation
+    required: false
+    default: "default"
+
+runs:
+  using: composite
+  steps:
+    - name: Validate installer
+      if: inputs.installer != 'pip' && inputs.installer != 'uv'
+      shell: bash
+      run: |
+        echo "::error::Unsupported installer '${{ inputs.installer }}'. Use 'pip' or 'uv'."
+        exit 1
+
+    - uses: actions/setup-python@v6
+      if: inputs.installer == 'pip'
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: pip
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+
+    - uses: actions/setup-python@v6
+      if: inputs.installer == 'uv'
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - uses: astral-sh/setup-uv@v8.2.0
+      if: inputs.installer == 'uv'
+      with:
+        version: ${{ inputs.uv-version }}
+        cache-suffix: ${{ inputs.cache-suffix }}
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ inputs.install-command }}
