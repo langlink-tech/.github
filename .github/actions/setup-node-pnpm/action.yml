@@ -1,0 +1,58 @@
+name: Setup Node package manager
+description: Validate pnpm/npm, set up Node with dependency cache, and install packages
+
+inputs:
+  working-directory:
+    description: Working directory for install
+    required: false
+    default: "."
+  node-version:
+    description: Node.js version
+    required: false
+    default: "22"
+  package-manager:
+    description: Package manager (pnpm or npm)
+    required: false
+    default: "pnpm"
+  package-manager-version:
+    description: Optional pinned pnpm version
+    required: false
+    default: ""
+  cache-dependency-path:
+    description: Lockfile path(s) for setup-node cache
+    required: true
+  install-command:
+    description: Command used to install dependencies
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Validate package manager
+      if: inputs.package-manager != 'pnpm' && inputs.package-manager != 'npm'
+      shell: bash
+      run: |
+        echo "::error::Unsupported package manager '${{ inputs.package-manager }}'. Use 'pnpm' or 'npm'."
+        exit 1
+
+    - uses: pnpm/action-setup@v5
+      if: inputs.package-manager == 'pnpm' && inputs.package-manager-version != ''
+      with:
+        version: ${{ inputs.package-manager-version }}
+        run_install: false
+
+    - uses: pnpm/action-setup@v5
+      if: inputs.package-manager == 'pnpm' && inputs.package-manager-version == ''
+      with:
+        run_install: false
+
+    - uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: ${{ inputs.package-manager == 'pnpm' && 'pnpm' || 'npm' }}
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ inputs.install-command }}

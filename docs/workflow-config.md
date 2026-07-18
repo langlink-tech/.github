@@ -16,7 +16,33 @@ and the shared label taxonomy in `langlink-tech/.github`.
 | `.github/labels.json` | Label taxonomy | `kind/*`, `priority/*`, `area/*` labels with names, colors, and descriptions |
 | `.github/workflows/reusable-node-quality.yml` | Shared Node CI contract | Reusable workflow with `workflow_call` inputs and `contents: read` permission |
 | `.github/workflows/reusable-python-quality.yml` | Shared Python CI contract | Reusable workflow with `workflow_call` inputs and `contents: read` permission |
+| `.github/actions/setup-node-pnpm/action.yml` | Shared Node setup composite | Checkout-independent install setup for pnpm/npm |
+| `.github/actions/setup-python-tooling/action.yml` | Shared Python setup composite | pip/uv install setup shared across quality jobs |
 | `docs/repo-contract.md` | Required repo contract | Defines required files, local command entrypoints, repo archetypes, and the rule to prefer reusable workflows |
+
+## Versioning And Pinning
+
+Consumers must pin reusable workflows to a reviewed tag or immutable SHA, not
+mutable `@main`.
+
+Current reviewed release:
+
+- Tag: `quality-workflows-v1` (created when this composite refactor lands on the
+  default branch)
+- Rollback: previous default-branch SHA recorded in
+  `langlink-tech/plunet-governance` caller matrix
+
+Compatibility window: keep the prior SHA callable for at least 14 days after a
+new tag. `@main` is emergency fallback only and must carry an expiry date in the
+caller matrix.
+
+Example:
+
+```yaml
+jobs:
+  quality:
+    uses: langlink-tech/.github/.github/workflows/reusable-node-quality.yml@quality-workflows-v1
+```
 
 ## Reusable Workflow Input Contracts
 
@@ -35,12 +61,15 @@ Declared inputs:
 - `test-command`: default empty string
 - `test-shards`: default `["1/1"]`
 - `build-command`: default empty string
+- `timeout-minutes`: default `20`
+- `combine-static-checks`: default `false` (when true, lint + typecheck share one job)
 
 Behavior gates:
 
 - only `pnpm` and `npm` are accepted
 - jobs run only when their corresponding command input is non-empty
 - test sharding is implemented through a job matrix and `TEST_SHARD`
+- setup is provided by `langlink-tech/.github/.github/actions/setup-node-pnpm@quality-workflows-v1` (fully qualified; relative `./` paths resolve against the caller and break cross-repo reuse)
 
 ### `reusable-python-quality.yml`
 
@@ -57,12 +86,14 @@ Declared inputs:
 - `test-command`: default empty string
 - `upload-source-artifact`: default `false`
 - `source-artifact-name`: default `repo-source`
+- `timeout-minutes`: default `20`
 
 Behavior gates:
 
 - only `pip` and `uv` are accepted
 - the `invariants` job exists only when `invariant-command` is provided
 - source packaging happens only in the `tests` job and only when artifact upload is enabled
+- setup is provided by `langlink-tech/.github/.github/actions/setup-python-tooling@quality-workflows-v1`
 
 ## Taxonomy Config
 
