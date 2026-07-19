@@ -104,9 +104,10 @@ Behavior gates:
 - `priority/*`: p0, p1, p2
 - `area/*`: backend, frontend, devops, data, docs, other, cross-cutting
 
-`.github/labels.json` is the committed source for those labels. The issue forms
-consume part of that taxonomy immediately through default `kind/*` labels and
-area dropdowns, but the forms do not assign area labels automatically.
+`.github/labels.json` is the committed source for those labels. Bug and feature
+forms apply static `kind/*` defaults immediately. The Engineering Task form has
+no static `kind/*` default; mapped `kind/*` / `area/*` labels require a local
+copy of `issue-form-labels.yml`, because that workflow is not inherited.
 
 ## Override Rules
 
