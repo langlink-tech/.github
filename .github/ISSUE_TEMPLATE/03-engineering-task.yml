@@ -6,7 +6,10 @@ body:
     attributes:
       value: |
         Use this for refactors, technical debt, investigations, and internal follow-ups.
-        The `issue-form-labels` workflow applies `kind/*` from Task Type and `area/*` from Area.
+        This form has no static `kind/*` default. In this `.github` health repo, the local
+        `issue-form-labels` workflow maps Task Type → `kind/*` and Area → `area/*`.
+        Inherited community-health forms do **not** run that workflow automatically;
+        consuming repos that want the same labels must copy `.github/workflows/issue-form-labels.yml`.
   - type: dropdown
     id: task-kind
     attributes:

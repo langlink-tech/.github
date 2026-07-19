@@ -7,13 +7,14 @@ and the shared label taxonomy in `langlink-tech/.github`.
 
 | Path | Config surface | Key values or behavior |
 | --- | --- | --- |
-| `README.md` | Published baseline and override rules | Declares the repo as the default GitHub community health source, lists the shipped assets, says repo-local issue templates or PR template override these defaults, and says `CODEOWNERS` is not inherited |
+| `README.md` | Published baseline and override rules | Declares the repo as the default GitHub community health source, lists the shipped assets, says repo-local issue templates or PR template override these defaults, says `CODEOWNERS` is not inherited, and says `issue-form-labels.yml` must be copied by consumers |
 | `.github/ISSUE_TEMPLATE/config.yml` | Issue intake guardrail | `blank_issues_enabled: false` |
 | `.github/ISSUE_TEMPLATE/01-bug-report.yml` | Bug issue form | Default label `kind/bug`; required fields for `area`, `summary`, `background`, `desired-outcome`, `acceptance-criteria` |
 | `.github/ISSUE_TEMPLATE/02-feature-request.yml` | Feature issue form | Default label `kind/feature`; required fields for `area`, `summary`, `background`, `desired-outcome`, `in-scope`, `acceptance-criteria` |
-| `.github/ISSUE_TEMPLATE/03-engineering-task.yml` | Engineering task form | No static `kind/*` default; `issue-form-labels` maps Task Type → `kind/*`; required fields for `task-kind`, `area`, `summary`, `motivation`, `in-scope`, `acceptance-criteria` |
+| `.github/ISSUE_TEMPLATE/03-engineering-task.yml` | Engineering task form | No static `kind/*` default; mapped labels require a local `issue-form-labels.yml`; required fields for `task-kind`, `area`, `summary`, `motivation`, `in-scope`, `acceptance-criteria` |
 | `.github/pull_request_template.md` | PR submission contract | Sections for summary, related issue, change type, checklist, and test plan |
 | `.github/labels.json` | Label taxonomy | `kind/*`, `priority/*`, `area/*` labels with names, colors, and descriptions |
+| `.github/workflows/issue-form-labels.yml` | Engineering Task label mapper | Ordinary `issues: opened` workflow; not inherited; consumers copy into their repo |
 | `.github/workflows/reusable-node-quality.yml` | Shared Node CI contract | Reusable workflow with `workflow_call` inputs and `contents: read` permission |
 | `.github/workflows/reusable-python-quality.yml` | Shared Python CI contract | Reusable workflow with `workflow_call` inputs and `contents: read` permission |
 | `.github/actions/setup-node-pnpm/action.yml` | Shared Node setup composite | Checkout-independent install setup for pnpm/npm |
@@ -103,9 +104,10 @@ Behavior gates:
 - `priority/*`: p0, p1, p2
 - `area/*`: backend, frontend, devops, data, docs, other, cross-cutting
 
-`.github/labels.json` is the committed source for those labels. The issue forms
-consume part of that taxonomy immediately through default `kind/*` labels and
-area dropdowns, but the forms do not assign area labels automatically.
+`.github/labels.json` is the committed source for those labels. Bug and feature
+forms apply static `kind/*` defaults immediately. The Engineering Task form has
+no static `kind/*` default; mapped `kind/*` / `area/*` labels require a local
+copy of `issue-form-labels.yml`, because that workflow is not inherited.
 
 ## Override Rules
 
