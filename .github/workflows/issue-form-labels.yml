@@ -1,0 +1,71 @@
+name: Issue Form Labels
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: issue-form-labels-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  apply-form-labels:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Map issue form fields to taxonomy labels
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const body = context.payload.issue.body || "";
+            const kindMap = {
+              refactor: "kind/refactor",
+              chore: "kind/chore",
+              spike: "kind/spike",
+              "follow-up": "kind/follow-up",
+            };
+            const areaMap = {
+              frontend: "area/frontend",
+              backend: "area/backend",
+              devops: "area/devops",
+              data: "area/data",
+              docs: "area/docs",
+              other: "area/other",
+              "cross-cutting": "area/cross-cutting",
+            };
+
+            function fieldValue(label) {
+              const re = new RegExp(
+                `###\\s*${label}\\s*\\n+([\\s\\S]*?)(?:\\n###|$)`,
+                "i",
+              );
+              const match = body.match(re);
+              if (!match) return "";
+              return match[1]
+                .split("\n")
+                .map((line) => line.trim())
+                .find((line) => line && !line.startsWith("<!--")) || "";
+            }
+
+            const labels = [];
+            const taskType = fieldValue("Task Type").toLowerCase();
+            const area = fieldValue("Area").toLowerCase();
+            if (taskType && kindMap[taskType]) labels.push(kindMap[taskType]);
+            if (area && areaMap[area]) labels.push(areaMap[area]);
+
+            if (labels.length === 0) {
+              core.info("No form taxonomy labels to apply.");
+              return;
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels,
+            });
+            core.info(`Applied labels: ${labels.join(", ")}`);

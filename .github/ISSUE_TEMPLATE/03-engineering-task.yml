@@ -1,13 +1,12 @@
 name: Engineering Task
 description: Track a refactor, chore, spike, or internal follow-up task.
 title: "[Task] "
-labels:
-  - kind/chore
 body:
   - type: markdown
     attributes:
       value: |
         Use this for refactors, technical debt, investigations, and internal follow-ups.
+        The `issue-form-labels` workflow applies `kind/*` from Task Type and `area/*` from Area.
   - type: dropdown
     id: task-kind
     attributes:
