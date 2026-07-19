@@ -20,15 +20,18 @@ Flow:
 2. The form applies a default `kind/*` label immediately when the template sets one:
    - bug report -> `kind/bug`
    - feature request -> `kind/feature`
-   - engineering task -> no static default; `issue-form-labels` maps Task Type → `kind/refactor` / `kind/chore` / `kind/spike` / `kind/follow-up`, and Area → `area/*`
+   - engineering task -> no static default; label mapping needs `.github/workflows/issue-form-labels.yml` in the **same** repository (Task Type → `kind/refactor` / `kind/chore` / `kind/spike` / `kind/follow-up`, Area → `area/*`)
 3. The reporter fills structured fields such as `area`, `summary`,
    `background`, `acceptance-criteria`, and optional `context`.
-4. The resulting issue enters repo triage with a stable default `kind/*` label
-   plus structured fields.
+4. Bug/feature issues enter triage with their static `kind/*` label. Engineering
+   Task issues only get mapped `kind/*` / `area/*` when the consumer copied
+   `issue-form-labels.yml`; inheritance of the form alone is not enough.
 
 What does not flow from this repo:
 
 - repo-specific `CODEOWNERS`; that must exist in each consumer repo
+- `issue-form-labels.yml`; it is not a community health file and must be copied
+  into each consumer that wants Engineering Task label mapping
 
 ## 2. Pull Request Template Flow
 
