@@ -25,6 +25,11 @@
     "description": "Time-boxed investigation before committing to implementation."
   },
   {
+    "name": "kind/follow-up",
+    "color": "BFDADC",
+    "description": "Tracked follow-up from a prior change, review, or incident."
+  },
+  {
     "name": "priority/p0",
     "color": "B60205",
     "description": "Urgent production issue or blocked release."
@@ -63,5 +68,15 @@
     "name": "area/docs",
     "color": "0366D6",
     "description": "Documentation or knowledge capture work."
+  },
+  {
+    "name": "area/other",
+    "color": "C5DEF5",
+    "description": "Work that does not fit the primary area labels."
+  },
+  {
+    "name": "area/cross-cutting",
+    "color": "BFD4F2",
+    "description": "Work spanning multiple areas or shared platforms."
   }
 ]

@@ -12,9 +12,9 @@ It contains:
 - reusable workflow config in `docs/workflow-config.md`
 
 Shared label taxonomy:
-- `kind/*`: bug, feature, refactor, chore, spike
+- `kind/*`: bug, feature, refactor, chore, spike, follow-up
 - `priority/*`: p0, p1, p2
-- `area/*`: backend, frontend, devops, data, docs
+- `area/*`: backend, frontend, devops, data, docs, other, cross-cutting
 
 Notes:
 - repositories with their own `.github/ISSUE_TEMPLATE/` or `pull_request_template.md` override these defaults

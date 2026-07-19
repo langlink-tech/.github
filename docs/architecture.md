@@ -22,7 +22,7 @@ community health files. In committed files today, that means:
 | `README.md` | Human-readable summary of what this repo publishes and where overrides apply | Read by maintainers and adopters |
 | `.github/ISSUE_TEMPLATE/01-bug-report.yml` | Structured intake for broken behavior, with default label `kind/bug` | Inherited by repos that do not override issue forms |
 | `.github/ISSUE_TEMPLATE/02-feature-request.yml` | Structured intake for new capability requests, with default label `kind/feature` | Inherited by repos that do not override issue forms |
-| `.github/ISSUE_TEMPLATE/03-engineering-task.yml` | Structured intake for refactors, chores, spikes, and follow-ups, with default label `kind/chore` | Inherited by repos that do not override issue forms |
+| `.github/ISSUE_TEMPLATE/03-engineering-task.yml` | Structured intake for refactors, chores, spikes, and follow-ups; `kind/*` applied from Task Type via `issue-form-labels` | Inherited by repos that do not override issue forms |
 | `.github/ISSUE_TEMPLATE/config.yml` | Disables blank issues | Inherited by repos that do not override issue form config |
 | `.github/pull_request_template.md` | Shared PR metadata contract | Inherited by repos that do not override the PR template |
 | `.github/labels.json` | Default label taxonomy for `kind/*`, `priority/*`, and `area/*` | Applied when maintainers sync labels into consuming repos |

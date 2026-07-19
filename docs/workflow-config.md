@@ -11,7 +11,7 @@ and the shared label taxonomy in `langlink-tech/.github`.
 | `.github/ISSUE_TEMPLATE/config.yml` | Issue intake guardrail | `blank_issues_enabled: false` |
 | `.github/ISSUE_TEMPLATE/01-bug-report.yml` | Bug issue form | Default label `kind/bug`; required fields for `area`, `summary`, `background`, `desired-outcome`, `acceptance-criteria` |
 | `.github/ISSUE_TEMPLATE/02-feature-request.yml` | Feature issue form | Default label `kind/feature`; required fields for `area`, `summary`, `background`, `desired-outcome`, `in-scope`, `acceptance-criteria` |
-| `.github/ISSUE_TEMPLATE/03-engineering-task.yml` | Engineering task form | Default label `kind/chore`; required fields for `task-kind`, `area`, `summary`, `motivation`, `in-scope`, `acceptance-criteria` |
+| `.github/ISSUE_TEMPLATE/03-engineering-task.yml` | Engineering task form | No static `kind/*` default; `issue-form-labels` maps Task Type → `kind/*`; required fields for `task-kind`, `area`, `summary`, `motivation`, `in-scope`, `acceptance-criteria` |
 | `.github/pull_request_template.md` | PR submission contract | Sections for summary, related issue, change type, checklist, and test plan |
 | `.github/labels.json` | Label taxonomy | `kind/*`, `priority/*`, `area/*` labels with names, colors, and descriptions |
 | `.github/workflows/reusable-node-quality.yml` | Shared Node CI contract | Reusable workflow with `workflow_call` inputs and `contents: read` permission |
@@ -99,9 +99,9 @@ Behavior gates:
 
 `README.md` summarizes the default label families:
 
-- `kind/*`: bug, feature, refactor, chore, spike
+- `kind/*`: bug, feature, refactor, chore, spike, follow-up
 - `priority/*`: p0, p1, p2
-- `area/*`: backend, frontend, devops, data, docs
+- `area/*`: backend, frontend, devops, data, docs, other, cross-cutting
 
 `.github/labels.json` is the committed source for those labels. The issue forms
 consume part of that taxonomy immediately through default `kind/*` labels and

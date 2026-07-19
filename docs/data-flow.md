@@ -17,10 +17,10 @@ Flow:
 
 1. A consuming repository without its own issue-form override inherits one of
    the shared forms.
-2. The form applies a default `kind/*` label immediately:
+2. The form applies a default `kind/*` label immediately when the template sets one:
    - bug report -> `kind/bug`
    - feature request -> `kind/feature`
-   - engineering task -> `kind/chore`
+   - engineering task -> no static default; `issue-form-labels` maps Task Type → `kind/refactor` / `kind/chore` / `kind/spike` / `kind/follow-up`, and Area → `area/*`
 3. The reporter fills structured fields such as `area`, `summary`,
    `background`, `acceptance-criteria`, and optional `context`.
 4. The resulting issue enters repo triage with a stable default `kind/*` label
