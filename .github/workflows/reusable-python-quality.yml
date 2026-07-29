@@ -49,11 +49,36 @@ on:
         required: false
         type: number
         default: 20
+      actionlint-enabled:
+        description: When true, lint .github/workflows with actionlint before other jobs
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
 
 jobs:
+  actionlint:
+    if: ${{ inputs.actionlint-enabled }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run actionlint
+        run: |
+          set -euo pipefail
+          if ! compgen -G ".github/workflows/*.yml" > /dev/null && ! compgen -G ".github/workflows/*.yaml" > /dev/null; then
+            echo "No workflow files found; skipping actionlint."
+            exit 0
+          fi
+          version="1.7.12"
+          archive="actionlint_${version}_linux_amd64.tar.gz"
+          curl -1sSfL "https://github.com/rhysd/actionlint/releases/download/v${version}/${archive}" -o "${RUNNER_TEMP}/${archive}"
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  ${RUNNER_TEMP}/${archive}" | sha256sum -c -
+          tar -xzf "${RUNNER_TEMP}/${archive}" -C "${RUNNER_TEMP}" actionlint
+          "${RUNNER_TEMP}/actionlint" -oneline
   lint:
     if: inputs.lint-command != ''
     runs-on: ubuntu-latest
