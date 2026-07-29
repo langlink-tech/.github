@@ -14,6 +14,9 @@ Both quality workflows run an `actionlint` job first (input `actionlint-enabled`
 It lints the caller repository's `.github/workflows` with actionlint 1.7.12 (checksum-pinned
 download). Set `actionlint-enabled: false` to opt out.
 
+Shellcheck findings are gated behind `actionlint-shellcheck` (default `false`). Keep it off
+until the repository's existing shell scripts are clean, then opt in per repo.
+
 ## Node Workflow
 
 Supports:
