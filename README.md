@@ -35,6 +35,10 @@ Shared setup composites (consumed by the reusable workflows above):
 Caller inventory and migration status live in the private control plane:
 `langlink-tech/plunet-governance` → `docs/github-org/reusable-workflow-caller-matrix.md`
 
+PR verification exception:
+- this repository currently exposes only reusable `workflow_call` quality workflows and has no repository-owned PR status check
+- until a dedicated self-test workflow is adopted, verify workflow-only PRs with YAML parsing plus the `plunet-governance` all-workflow static audit; zero GitHub checks is therefore an explicit monitored no-check exception, not evidence that validation was skipped
+
 Engineering entrypoint templates:
 - `templates/engineering-entry-standardization/Taskfile.node.yml`
 - `templates/engineering-entry-standardization/Taskfile.python-uv.yml`
