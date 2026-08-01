@@ -34,7 +34,8 @@ Optional but strongly recommended:
 ## Shared CI Principle
 
 - Prefer calling reusable workflows from `langlink-tech/.github` instead of copying job definitions into each repo.
-- Pin reusable workflows to a reviewed tag (for example `@quality-workflows-v1`) or immutable SHA. Do not leave active consumers on mutable `@main`.
+- Pin reusable workflows to the reviewed immutable SHA (currently `@7717a53d825005835142669a664b64f52f532304`, tagged `quality-workflows-v5`). Do not leave active consumers on mutable `@main`.
+- Treat rollback compatibility per workflow: v4 is a limited rollback for Node and Python only; Secret Scan callers remain on v5 to preserve caller-controlled least-privilege permissions.
 - Keep repo-specific jobs only for domain invariants, deployment packaging, contract checks, or environment-specific smoke tests.
 - Every CI/CD workflow should set least-privilege `permissions`, `concurrency` with `cancel-in-progress` for PR runs, and `timeout-minutes` on quality jobs.
 - Complex monorepos may keep local orchestration (for example change detection) and still share setup composites from `langlink-tech/.github`.
