@@ -102,7 +102,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
-      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@quality-workflows-v1
+      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@be4f67a71a9db35ca52748af9205d57f6684522a # pinned composite dependencies
         with:
           working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
@@ -128,7 +128,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
-      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@quality-workflows-v1
+      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@be4f67a71a9db35ca52748af9205d57f6684522a # pinned composite dependencies
         with:
           working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
@@ -148,7 +148,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
-      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@quality-workflows-v1
+      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@be4f67a71a9db35ca52748af9205d57f6684522a # pinned composite dependencies
         with:
           working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
@@ -174,7 +174,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
-      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@quality-workflows-v1
+      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@be4f67a71a9db35ca52748af9205d57f6684522a # pinned composite dependencies
         with:
           working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
@@ -194,7 +194,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
-      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@quality-workflows-v1
+      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@be4f67a71a9db35ca52748af9205d57f6684522a # pinned composite dependencies
         with:
           working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
