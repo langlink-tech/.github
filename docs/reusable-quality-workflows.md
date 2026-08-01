@@ -10,9 +10,11 @@ Use them when a repository's core CI gate is a combination of install, lint, typ
 
 ## Workflow Lint (actionlint)
 
-Both quality workflows run an `actionlint` job first (input `actionlint-enabled`, default `true`).
-It lints the caller repository's `.github/workflows` with actionlint 1.7.12 (checksum-pinned
-download). Set `actionlint-enabled: false` to opt out.
+Both quality workflows define an `actionlint` job (input `actionlint-enabled`,
+default `true`). It lints the caller repository's `.github/workflows` with
+actionlint 1.7.12 (checksum-pinned download). The job has no `needs`
+relationship to the other enabled quality jobs, so GitHub may run them in
+parallel. Set `actionlint-enabled: false` to opt out.
 
 Shellcheck findings are gated behind `actionlint-shellcheck` (default `false`). Keep it off
 until the repository's existing shell scripts are clean, then opt in per repo.

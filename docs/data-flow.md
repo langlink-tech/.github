@@ -66,8 +66,9 @@ Flow:
    directory, Node version, package manager, dependency cache path, and command
    hooks for install, lint, typecheck, test, and build. The caller can also
    enable/disable actionlint and opt in to shellcheck-backed workflow linting.
-3. The actionlint job runs first by default. Each enabled quality job performs
-   checkout, runtime setup, dependency install, and the job-specific command.
+3. The actionlint job is enabled by default and may run in parallel with the
+   other jobs because no `needs` relationship orders them. Each enabled quality
+   job performs checkout, runtime setup, dependency install, and its command.
 4. If tests are enabled, the workflow expands `test-shards` into a matrix and
    exposes the selected shard through `TEST_SHARD`.
 
@@ -89,9 +90,10 @@ Flow:
 2. Inputs provide working directory, Python version, installer choice, dependency
    cache path, install/lint/invariant/test commands, and optional artifact
    upload settings, plus actionlint and shellcheck controls.
-3. The actionlint job runs first by default. Each enabled quality job performs
-   checkout, installer validation, runtime setup, dependency install, and the
-   job-specific command.
+3. The actionlint job is enabled by default and may run in parallel with the
+   other jobs because no `needs` relationship orders them. Each enabled quality
+   job performs checkout, installer validation, runtime setup, dependency
+   install, and its command.
 4. When `test-command` is non-empty and `upload-source-artifact` is true, the
    `tests` job archives `HEAD` with `git archive`, uploads `repo-source.tgz`,
    and retains it for one day. Untracked and runtime-generated files are absent.
