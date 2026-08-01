@@ -35,18 +35,18 @@ runs:
         echo "::error::Unsupported package manager '${{ inputs.package-manager }}'. Use 'pnpm' or 'npm'."
         exit 1
 
-    - uses: pnpm/action-setup@v5
+    - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
       if: inputs.package-manager == 'pnpm' && inputs.package-manager-version != ''
       with:
         version: ${{ inputs.package-manager-version }}
         run_install: false
 
-    - uses: pnpm/action-setup@v5
+    - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
       if: inputs.package-manager == 'pnpm' && inputs.package-manager-version == ''
       with:
         run_install: false
 
-    - uses: actions/setup-node@v6
+    - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
       with:
         node-version: ${{ inputs.node-version }}
         cache: ${{ inputs.package-manager == 'pnpm' && 'pnpm' || 'npm' }}
