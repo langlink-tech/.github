@@ -10,8 +10,9 @@ community health files. In committed files today, that means:
 - shared issue forms in `.github/ISSUE_TEMPLATE/`
 - a shared PR template in `.github/pull_request_template.md`
 - a shared label manifest in `.github/labels.json`
-- reusable CI entrypoints in `.github/workflows/reusable-node-quality.yml`
-  and `.github/workflows/reusable-python-quality.yml`
+- reusable CI entrypoints in `.github/workflows/reusable-node-quality.yml`,
+  `.github/workflows/reusable-python-quality.yml`, and
+  `.github/workflows/reusable-secret-scan.yml`
 - public contract guidance in `docs/repo-contract.md`,
   `docs/reusable-quality-workflows.md`, and `docs/workflow-config.md`
 
@@ -26,9 +27,10 @@ community health files. In committed files today, that means:
 | `.github/ISSUE_TEMPLATE/config.yml` | Disables blank issues | Inherited by repos that do not override issue form config |
 | `.github/pull_request_template.md` | Shared PR metadata contract | Inherited by repos that do not override the PR template |
 | `.github/labels.json` | Default label taxonomy for `kind/*`, `priority/*`, and `area/*` | Applied when maintainers sync labels into consuming repos |
-| `.github/workflows/issue-form-labels.yml` | Maps Engineering Task fields to `kind/*` / `area/*` on `issues: opened` | Local to each repo; not inherited with community health files; consumers must copy it |
+| `.github/workflows/issue-form-labels.yml` | On `issues: opened`, maps `Task Type` when present and maps `Area` for any shared form | Local to each repo; not inherited with community health files; consumers must copy it; later edits are not remapped |
 | `.github/workflows/reusable-node-quality.yml` | Reusable Node quality workflow exposed through `workflow_call` | Explicitly called from consuming repos |
 | `.github/workflows/reusable-python-quality.yml` | Reusable Python quality workflow exposed through `workflow_call` | Explicitly called from consuming repos |
+| `.github/workflows/reusable-secret-scan.yml` | Reusable redacted secret scan exposed through `workflow_call` | Explicitly called from consuming repos; inherits the caller's permission ceiling |
 | `.github/CODEOWNERS` | Owner rule for this repository itself | Local to this repo; not inherited |
 | `docs/repo-contract.md` | Baseline expectations for active repositories | Read during repo setup and cleanup |
 | `docs/reusable-quality-workflows.md` | Human-readable guide for the reusable workflow interfaces | Read before wiring consumer repos to the shared workflows |
@@ -39,7 +41,7 @@ community health files. In committed files today, that means:
 This repo owns four things:
 
 1. Intake structure for issues and PRs.
-2. Reusable CI building blocks for Node and Python repositories.
+2. Reusable CI building blocks for Node, Python, and secret scanning.
 3. Documentation for what a compliant repo should contain.
 4. Public contract guidance for shared governance assets.
 
@@ -63,12 +65,15 @@ repository-level `.github/ISSUE_TEMPLATE/` or `pull_request_template.md`
 overrides them.
 
 Ordinary `issues:` workflows such as `issue-form-labels.yml` are not community
-health files and are not inherited. Consumers that want Engineering Task label
-mapping must copy that workflow into their own repository.
+health files and are not inherited. Consumers that want form taxonomy mapping
+must copy that workflow into their own repository. The mapper runs only on
+issue creation: it maps `Area` on all shared forms and `Task Type` when present.
 
 ### Explicit CI composition
 
 The reusable quality workflow files are entrypoints with `on.workflow_call`,
 required inputs such as `cache-dependency-path` and `install-command`, and
 optional command hooks for linting, tests, builds, and invariants. Consuming
-repositories opt in by calling these files from their own workflow YAML.
+repositories opt in by calling these files from their own workflow YAML. The
+Secret Scan entrypoint similarly accepts report-only/blocking and SARIF inputs,
+while its effective permissions remain capped by the caller.

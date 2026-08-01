@@ -20,12 +20,14 @@ Flow:
 2. The form applies a default `kind/*` label immediately when the template sets one:
    - bug report -> `kind/bug`
    - feature request -> `kind/feature`
-   - engineering task -> no static default; label mapping needs `.github/workflows/issue-form-labels.yml` in the **same** repository (Task Type → `kind/refactor` / `kind/chore` / `kind/spike` / `kind/follow-up`, Area → `area/*`)
+   - engineering task -> no static default; label mapping needs `.github/workflows/issue-form-labels.yml` in the **same** repository
 3. The reporter fills structured fields such as `area`, `summary`,
    `background`, `acceptance-criteria`, and optional `context`.
-4. Bug/feature issues enter triage with their static `kind/*` label. Engineering
-   Task issues only get mapped `kind/*` / `area/*` when the consumer copied
-   `issue-form-labels.yml`; inheritance of the form alone is not enough.
+4. On `issues: opened`, a local copy of `issue-form-labels.yml` maps `Area` to
+   `area/*` for any shared form and maps Engineering Task `Task Type` to
+   `kind/refactor`, `kind/chore`, `kind/spike`, or `kind/follow-up`.
+5. Later issue edits do not trigger the mapper, so changed form values require
+   manual label reconciliation.
 
 What does not flow from this repo:
 
@@ -62,9 +64,11 @@ Flow:
    through `workflow_call`.
 2. Inputs provide repository-specific execution details such as working
    directory, Node version, package manager, dependency cache path, and command
-   hooks for install, lint, typecheck, test, and build.
-3. Each enabled job performs checkout, runtime setup, dependency install, and
-   the job-specific command.
+   hooks for install, lint, typecheck, test, and build. The caller can also
+   enable/disable actionlint and opt in to shellcheck-backed workflow linting.
+3. The actionlint job is enabled by default and may run in parallel with the
+   other jobs because no `needs` relationship orders them. Each enabled quality
+   job performs checkout, runtime setup, dependency install, and its command.
 4. If tests are enabled, the workflow expands `test-shards` into a matrix and
    exposes the selected shard through `TEST_SHARD`.
 
@@ -85,11 +89,38 @@ Flow:
    through `workflow_call`.
 2. Inputs provide working directory, Python version, installer choice, dependency
    cache path, install/lint/invariant/test commands, and optional artifact
-   upload settings.
-3. Each enabled job performs checkout, installer validation, runtime setup,
-   dependency install, and the job-specific command.
-4. When `upload-source-artifact` is true, the `tests` job archives `HEAD` into
-   `repo-source.tgz` and uploads it with `actions/upload-artifact@v6`.
+   upload settings, plus actionlint and shellcheck controls.
+3. The actionlint job is enabled by default and may run in parallel with the
+   other jobs because no `needs` relationship orders them. Each enabled quality
+   job performs checkout, installer validation, runtime setup, dependency
+   install, and its command.
+4. When `test-command` is non-empty and `upload-source-artifact` is true, the
+   `tests` job archives `HEAD` with `git archive`, uploads `repo-source.tgz`,
+   and retains it for one day. Untracked and runtime-generated files are absent.
 
 This flow turns repo-local quality commands into a shared execution shape
 without centralizing package manifests or source code in this repository.
+
+## 5. Reusable Secret Scan Flow
+
+Source files:
+
+- `.github/workflows/reusable-secret-scan.yml`
+- `docs/reusable-quality-workflows.md`
+
+Flow:
+
+1. A consumer calls the workflow at the reviewed v5 SHA. The reusable workflow
+   inherits the calling job's permission ceiling rather than raising it.
+2. The job checks out full history, installs Infisical CLI, and writes a redacted
+   SARIF report under `reports/security/`.
+3. `blocking: false` makes detected findings report-only; it does not suppress
+   scan installation or execution failures.
+4. Artifact upload is attempted with `always()`, while missing report files are
+   ignored. When `upload-sarif: true`, the caller must grant `contents: read`
+   and `security-events: write`; Code Scanning upload is attempted with
+   `continue-on-error`.
+
+The workflow conclusion, artifact presence, and SARIF ingestion are separate
+evidence surfaces. A green run alone proves neither artifact availability nor
+successful Code Scanning ingestion.
