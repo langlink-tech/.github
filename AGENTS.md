@@ -5,7 +5,7 @@
 
 ## Key entrypoints
 - `.github/workflows/` and `.github/actions/` are public reusable interfaces.
-- `.github/ISSUE_TEMPLATE/`, `pull_request_template.md`, `.github/labels.json`, `docs/`, and `templates/` own shared contributor contracts.
+- `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md`, `.github/labels.json`, `docs/`, and `templates/` own shared contributor contracts.
 
 ## Working rules
 - Preserve workflow inputs, outputs, permissions, secrets, matrix behavior, and caller compatibility unless a versioned migration is planned.
@@ -17,4 +17,3 @@
 - Parse changed YAML and validate reusable workflow references and composite-action structure.
 - Run the `plunet-governance` all-workflow static audit for workflow interface changes; CodeQL alone is not interface evidence.
 - Verify changed templates and label manifests against their documented schemas and representative consumers.
-
