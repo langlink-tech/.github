@@ -27,8 +27,8 @@ these forms:
 
 Rules of thumb:
 
-- A P1 thread may never be closed as `TRACKED`; fix it or prove it a false
-  positive before merge.
+- A P1 thread may never be closed as `TRACKED`; fix it, prove it a false
+  positive, or close it as `OBSOLETE` with evidence before merge.
 - `TRACKED` requires an issue created in the same repository, referenced by
   URL in the thread reply.
 - When a re-review of a new head finds the thread's concern addressed, the
@@ -47,6 +47,7 @@ Rules of thumb:
 
 Before this contract, AI review threads could stay unresolved through merge,
 and "the bot commented" was indistinguishable from "someone decided". The
-2026-08 audit found 87 such threads across 70 merged PRs; 59 were still valid
-issues at the default-branch head, including 14 P1s. The gate plus the
-evidence rule keeps that backlog at zero.
+2026-08 organization-wide audit found a large backlog of such threads on
+merged PRs, including still-valid P1 issues at the default-branch head; exact
+figures are operator evidence and live in the private governance control
+plane. The gate plus the evidence rule keeps that backlog at zero.
