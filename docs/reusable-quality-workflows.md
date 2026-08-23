@@ -1,10 +1,11 @@
 # Reusable Quality Workflows
 
-The shared defaults repository publishes three reusable workflows:
+The shared defaults repository publishes four reusable workflows:
 
 - `reusable-node-quality.yml`
 - `reusable-python-quality.yml`
 - `reusable-secret-scan.yml`
+- `reusable-remote-image-build.yml` (see `docs/reusable-remote-image-build.md`)
 
 Use them when a repository's core CI gate is a combination of install, lint, typecheck, tests, and build.
 
