@@ -1,0 +1,194 @@
+name: Reusable remote image build
+
+on:
+  workflow_call:
+    inputs:
+      project_name:
+        required: true
+        type: string
+      compose_file:
+        required: true
+        type: string
+      search_paths:
+        description: Newline-separated absolute directories to search for the project checkout.
+        required: true
+        type: string
+      force_rebuild:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      TAILSCALE_OAUTH_CLIENT_ID:
+        required: true
+      TAILSCALE_OAUTH_SECRET:
+        required: true
+      SERVER_HOST:
+        required: true
+      SERVER_USER:
+        required: true
+      SLACK_WEBHOOK:
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: remote-image-build-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve immutable build SHA
+        id: meta
+        run: |
+          set -euo pipefail
+          BUILD_SHA="${GITHUB_SHA}"
+          [[ "${BUILD_SHA}" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "Build SHA is not a full lowercase commit SHA"
+            exit 1
+          }
+          echo "build_sha=${BUILD_SHA}" >> "${GITHUB_OUTPUT}"
+
+      - name: Setup Tailscale (OAuth)
+        uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4.1.2
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+          tags: tag:ci-cd
+          version: 1.86.2
+          args: --ssh
+
+      - name: Build image on server via Tailscale SSH
+        env:
+          SSH_HOST: ${{ secrets.SERVER_HOST }}
+          SSH_USER: ${{ secrets.SERVER_USER }}
+          BUILD_SHA: ${{ steps.meta.outputs.build_sha }}
+          PROJECT_NAME: ${{ inputs.project_name }}
+          COMPOSE_FILE: ${{ inputs.compose_file }}
+          SEARCH_PATHS: ${{ inputs.search_paths }}
+          FORCE_REBUILD: ${{ inputs.force_rebuild && 'true' || 'false' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${COMPOSE_FILE}" ] || [[ "${COMPOSE_FILE}" == *..* ]] \
+            || [[ "${COMPOSE_FILE}" =~ [[:cntrl:]/\\] ]]; then
+            echo "COMPOSE_FILE must be a relative basename (no slashes, no control characters, no ..)"
+            exit 1
+          fi
+          SEARCH_PATH_COUNT=0
+          while IFS= read -r candidate || [ -n "${candidate}" ]; do
+            [ -z "${candidate}" ] && continue
+            if [[ "${candidate}" =~ [[:cntrl:]] ]] || [[ "${candidate}" != /* ]]; then
+              echo "SEARCH_PATHS entries must be absolute paths with no control characters"
+              exit 1
+            fi
+            SEARCH_PATH_COUNT=$((SEARCH_PATH_COUNT + 1))
+          done <<< "${SEARCH_PATHS}"
+          if [ "${SEARCH_PATH_COUNT}" -eq 0 ]; then
+            echo "SEARCH_PATHS must include at least one absolute path"
+            exit 1
+          fi
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          cat > ~/.ssh/config << EOF
+          Host ${SSH_HOST}
+              User ${SSH_USER}
+              StrictHostKeyChecking accept-new
+              ConnectTimeout 30
+          EOF
+          chmod 600 ~/.ssh/config
+
+          {
+            printf 'export BUILD_SHA=%q; export PROJECT_NAME=%q; export COMPOSE_FILE=%q; export SEARCH_PATHS=%q; export FORCE_REBUILD=%q;\n' \
+              "$BUILD_SHA" "$PROJECT_NAME" "$COMPOSE_FILE" "$SEARCH_PATHS" "$FORCE_REBUILD"
+            cat << 'REMOTE'
+          set -euo pipefail
+          echo "Remote image-build contract: checkout the triggering SHA, build ${COMPOSE_FILE}, never start containers."
+          PROJECT_PATH=""
+          while IFS= read -r candidate; do
+            [ -z "${candidate}" ] && continue
+            if [ -d "${candidate}" ] && [ -f "${candidate}/docker-compose.yaml" ]; then
+              PROJECT_PATH="${candidate}"
+              break
+            fi
+          done <<< "${SEARCH_PATHS}"
+
+          if [ -z "${PROJECT_PATH}" ]; then
+            echo "Project directory for ${PROJECT_NAME} was not found in search_paths"
+            exit 1
+          fi
+          cd "${PROJECT_PATH}"
+          echo "Working directory: $(pwd)"
+
+          command -v git >/dev/null
+          command -v docker >/dev/null
+
+          git fetch --force origin "${BUILD_SHA}"
+          git checkout --force --detach "${BUILD_SHA}"
+          HEAD_SHA="$(git rev-parse HEAD)"
+          if [ "${HEAD_SHA}" != "${BUILD_SHA}" ]; then
+            echo "Checkout SHA ${HEAD_SHA} does not match triggering SHA ${BUILD_SHA}"
+            exit 1
+          fi
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Refusing to build a dirty checkout"
+            exit 1
+          fi
+
+          if [ ! -f .env ]; then
+            echo "Refusing to copy .env.example into production; .env is missing"
+            exit 1
+          fi
+          if [ -f .env.example ] && cmp -s .env .env.example; then
+            echo "Refusing to build with .env identical to .env.example"
+            exit 1
+          fi
+
+          if docker compose version >/dev/null 2>&1; then
+            COMPOSE_CMD="docker compose"
+          elif command -v docker-compose >/dev/null 2>&1; then
+            COMPOSE_CMD="docker-compose"
+          else
+            echo "Docker Compose is not available"
+            exit 1
+          fi
+          docker info >/dev/null
+
+          if [ "${FORCE_REBUILD}" != "true" ]; then
+            echo "Building ${COMPOSE_FILE} at ${BUILD_SHA}"
+          else
+            echo "Force-rebuilding ${COMPOSE_FILE} at ${BUILD_SHA}"
+          fi
+          ${COMPOSE_CMD} -f "${COMPOSE_FILE}" build
+
+          echo "Skipped container start (build-only contract: do not create, recreate, or start containers)"
+          docker image prune -f >/dev/null || true
+          REMOTE
+          } | ssh "$SSH_HOST" bash -s
+
+      - name: Send notification
+        if: always()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          JOB_STATUS: ${{ job.status }}
+          PROJECT_NAME: ${{ inputs.project_name }}
+          BUILD_SHA: ${{ steps.meta.outputs.build_sha }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SLACK_WEBHOOK}" ]; then
+            echo "notification not configured"
+            exit 0
+          fi
+          if [ "${JOB_STATUS}" = "success" ]; then
+            EMOJI="ok"
+          else
+            EMOJI="fail"
+          fi
+          MESSAGE="${EMOJI} ${PROJECT_NAME} remote image build ${JOB_STATUS} sha=${BUILD_SHA} (containers not started)"
+          payload="$(jq -n --arg text "$MESSAGE" '{text:$text}')"
+          curl --fail --silent --show-error -X POST -H 'Content-type: application/json' \
+            --data "${payload}" \
+            "${SLACK_WEBHOOK}"
+          echo "notification sent"
