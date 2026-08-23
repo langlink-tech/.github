@@ -100,10 +100,10 @@ jobs:
           EOF
           chmod 600 ~/.ssh/config
 
-          ssh "$SSH_HOST" "$(
-            printf 'export BUILD_SHA=%q; export PROJECT_NAME=%q; export COMPOSE_FILE=%q; export SEARCH_PATHS=%q; export FORCE_REBUILD=%q; bash -s' \
+          {
+            printf 'export BUILD_SHA=%q; export PROJECT_NAME=%q; export COMPOSE_FILE=%q; export SEARCH_PATHS=%q; export FORCE_REBUILD=%q;\n' \
               "$BUILD_SHA" "$PROJECT_NAME" "$COMPOSE_FILE" "$SEARCH_PATHS" "$FORCE_REBUILD"
-          )" << 'REMOTE'
+            cat << 'REMOTE'
           set -euo pipefail
           echo "Remote image-build contract: checkout the triggering SHA, build ${COMPOSE_FILE}, never start containers."
           PROJECT_PATH=""
@@ -166,6 +166,7 @@ jobs:
           echo "Skipped container start (build-only contract: do not create, recreate, or start containers)"
           docker image prune -f >/dev/null || true
           REMOTE
+          } | ssh "$SSH_HOST" bash -s
 
       - name: Send notification
         if: always()
