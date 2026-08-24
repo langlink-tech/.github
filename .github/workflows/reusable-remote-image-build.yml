@@ -49,6 +49,17 @@ jobs:
             echo "Build SHA is not a full lowercase commit SHA"
             exit 1
           }
+          [[ "${GITHUB_REF}" == "refs/heads/main" ]] || {
+            echo "Remote image builds are allowed only on refs/heads/main"
+            exit 1
+          }
+          case "${GITHUB_EVENT_NAME}" in
+            push|workflow_dispatch) ;;
+            *)
+              echo "Remote image builds are allowed only on push or workflow_dispatch"
+              exit 1
+              ;;
+          esac
           echo "build_sha=${BUILD_SHA}" >> "${GITHUB_OUTPUT}"
 
       - name: Setup Tailscale (OAuth)
@@ -125,7 +136,9 @@ jobs:
           command -v git >/dev/null
           command -v docker >/dev/null
 
+          git fetch --force origin main
           git fetch --force origin "${BUILD_SHA}"
+          git merge-base --is-ancestor "${BUILD_SHA}" origin/main
           git checkout --force --detach "${BUILD_SHA}"
           HEAD_SHA="$(git rev-parse HEAD)"
           if [ "${HEAD_SHA}" != "${BUILD_SHA}" ]; then

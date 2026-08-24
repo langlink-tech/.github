@@ -4,7 +4,11 @@
 triggering commit SHA, builds a named Compose file, and never starts or
 restarts containers.
 
-Callers must pin a full commit SHA. Do not use `@main`.
+Callers must pin a full commit SHA. Do not use `@main`. Do not call this
+workflow from `pull_request` or from a non-`main` ref. The reusable job
+fail-closes unless `github.ref` is `refs/heads/main` and the event is `push`
+or `workflow_dispatch`. Product repos should keep their inlined remote-build
+workflows until this file is pinned at a SHA that includes that gate.
 
 ```yaml
 jobs:
@@ -32,6 +36,13 @@ jobs:
 
 ## Fail-closed behavior
 
+- `github.ref` must be `refs/heads/main`. Other branches, tags, and pull-request
+  refs fail.
+- `github.event_name` must be `push` or `workflow_dispatch`. `pull_request` and
+  other events fail.
+- On the remote host, `origin/main` is fetched and
+  `git merge-base --is-ancestor "$BUILD_SHA" origin/main` must succeed before
+  checkout.
 - `BUILD_SHA` is always `GITHUB_SHA`; the workflow does not re-resolve a live
   branch tip on `workflow_dispatch`.
 - `compose_file` that is not a relative basename fails.
