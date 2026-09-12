@@ -9,11 +9,11 @@ The shared defaults repository publishes four reusable workflows:
 
 Use them when a repository's core CI gate is a combination of install, lint, typecheck, tests, and build.
 
-Reviewed pins stay on a tagged SHA (`quality-workflows-v5` at
-`7717a53d825005835142669a664b64f52f532304` until a newer tag is published).
-Callers do not pick up `main` automatically. Efficiency defaults
-(`combine-static-checks: true`, path-aware actionlint, optional `single-job`)
-apply only after a caller retargets the post-merge reviewed SHA.
+Reviewed Node/Python pins stay on a tagged SHA (`quality-workflows-v6` at
+`d533f85808e3313fe97ae3a092c62865a6f131e2`). Callers do not pick up `main`
+automatically. Secret Scan remains on `quality-workflows-v5`
+(`7717a53d825005835142669a664b64f52f532304`) until that pin is reviewed
+separately.
 
 ## Workflow Lint (actionlint)
 
@@ -45,7 +45,7 @@ Typical use:
 ```yaml
 jobs:
   quality:
-    uses: langlink-tech/.github/.github/workflows/reusable-node-quality.yml@7717a53d825005835142669a664b64f52f532304 # quality-workflows-v5
+    uses: langlink-tech/.github/.github/workflows/reusable-node-quality.yml@d533f85808e3313fe97ae3a092c62865a6f131e2 # quality-workflows-v6
     with:
       package-manager: pnpm
       package-manager-version: "10.30.3"
@@ -77,7 +77,7 @@ Typical use:
 ```yaml
 jobs:
   quality:
-    uses: langlink-tech/.github/.github/workflows/reusable-python-quality.yml@7717a53d825005835142669a664b64f52f532304 # quality-workflows-v5
+    uses: langlink-tech/.github/.github/workflows/reusable-python-quality.yml@d533f85808e3313fe97ae3a092c62865a6f131e2 # quality-workflows-v6
     with:
       installer: uv
       cache-dependency-path: pyproject.toml
