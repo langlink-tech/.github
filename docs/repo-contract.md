@@ -38,4 +38,5 @@ Optional but strongly recommended:
 - Treat rollback compatibility per workflow: v4 is a limited rollback for Node and Python only; Secret Scan callers remain on v5 to preserve caller-controlled least-privilege permissions.
 - Keep repo-specific jobs only for domain invariants, deployment packaging, contract checks, or environment-specific smoke tests.
 - Every CI/CD workflow should set least-privilege `permissions`, `concurrency` with `cancel-in-progress` for PR runs, and `timeout-minutes` on quality jobs.
+- Follow `docs/cicd-efficiency.md`: one install per cheap static job, skip unchanged work behind an aggregator, reuse CI artifacts in CD, and do not double-run `pull_request` plus `push` on the same SHA.
 - Complex monorepos may keep local orchestration (for example change detection) and still share setup composites from `langlink-tech/.github`.

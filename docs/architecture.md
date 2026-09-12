@@ -14,7 +14,8 @@ community health files. In committed files today, that means:
   `.github/workflows/reusable-python-quality.yml`, and
   `.github/workflows/reusable-secret-scan.yml`
 - public contract guidance in `docs/repo-contract.md`,
-  `docs/reusable-quality-workflows.md`, and `docs/workflow-config.md`
+  `docs/reusable-quality-workflows.md`, `docs/workflow-config.md`, and
+  `docs/cicd-efficiency.md`
 
 ## Component Map
 
@@ -35,6 +36,7 @@ community health files. In committed files today, that means:
 | `docs/repo-contract.md` | Baseline expectations for active repositories | Read during repo setup and cleanup |
 | `docs/reusable-quality-workflows.md` | Human-readable guide for the reusable workflow interfaces | Read before wiring consumer repos to the shared workflows |
 | `docs/workflow-config.md` | Committed workflow inputs and label taxonomy | Read before changing reusable workflow contracts |
+| `docs/cicd-efficiency.md` | Shared CI efficiency rules (wall-clock, minutes, artifacts, skip-if) | Read before adding jobs, shards, or extra workflows |
 
 ## Architecture Boundaries
 

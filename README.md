@@ -10,6 +10,7 @@ It contains:
 - engineering entrypoint templates in `templates/engineering-entry-standardization/`
 - repository contract guidance in `docs/repo-contract.md`
 - reusable workflow config in `docs/workflow-config.md`
+- CI efficiency contract in `docs/cicd-efficiency.md`
 
 Shared label taxonomy:
 - `kind/*`: bug, feature, refactor, chore, spike, follow-up
