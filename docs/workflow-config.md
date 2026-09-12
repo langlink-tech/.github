@@ -65,7 +65,8 @@ Declared inputs:
 - `test-shards`: default `["1/1"]`
 - `build-command`: default empty string
 - `timeout-minutes`: default `20`
-- `combine-static-checks`: default `false` (when true, lint + typecheck share one job)
+- `combine-static-checks`: default `true` (lint + typecheck share one install; `lint` / `typecheck` jobs still report)
+- `single-job`: default `false` (when true, lint + typecheck + tests + build share one job and child check names are omitted)
 - `actionlint-enabled`: default `true`
 - `actionlint-shellcheck`: default `false`
 
@@ -74,7 +75,8 @@ Behavior gates:
 - only `pnpm` and `npm` are accepted
 - jobs run only when their corresponding command input is non-empty
 - test sharding is implemented through a job matrix and `TEST_SHARD`
-- setup is provided by `langlink-tech/.github/.github/actions/setup-node-pnpm@be4f67a71a9db35ca52748af9205d57f6684522a` (fully qualified and immutable; relative `./` paths resolve against the caller and break cross-repo reuse)
+- `actionlint` reports on every enabled run but downloads the binary only when `.github/workflows` changed, or when base/head cannot be compared
+- setup is provided by `langlink-tech/.github/.github/actions/setup-node-pnpm@b5bffbcb2360ae5436ba619fb7a342d260435799` (fully qualified and immutable; relative `./` paths resolve against the caller and break cross-repo reuse)
 
 ### `reusable-python-quality.yml`
 
@@ -97,6 +99,7 @@ Declared inputs:
 
 Behavior gates:
 
+- `actionlint` reports on every enabled run but downloads the binary only when `.github/workflows` changed, or when base/head cannot be compared
 - only `pip` and `uv` are accepted
 - the `invariants` job exists only when `invariant-command` is provided
 - source packaging happens only when `test-command` is non-empty, the `tests` job runs, and artifact upload is enabled

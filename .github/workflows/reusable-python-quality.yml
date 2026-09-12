@@ -50,7 +50,7 @@ on:
         type: number
         default: 20
       actionlint-enabled:
-        description: When true, lint .github/workflows with actionlint before other jobs
+        description: When true, the actionlint job reports. The binary runs only if .github/workflows changed, or if base/head cannot be compared.
         required: false
         type: boolean
         default: true
@@ -71,7 +71,50 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
+      - name: Decide whether workflow files changed
+        id: workflows
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_SHA_VALUE: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          run=true
+          reason="fail-closed: run actionlint"
+
+          base=""
+          head="${GITHUB_SHA_VALUE:-}"
+          case "${EVENT_NAME}" in
+            pull_request|pull_request_target)
+              base="${PR_BASE_SHA:-}"
+              head="${PR_HEAD_SHA:-$head}"
+              ;;
+            push)
+              base="${PUSH_BEFORE_SHA:-}"
+              ;;
+          esac
+
+          if [[ "${base}" =~ ^[0-9a-f]{40}$ && "${head}" =~ ^[0-9a-f]{40}$ && ! "${base}" =~ ^0+$ ]]; then
+            if git cat-file -e "${base}^{commit}" 2>/dev/null \
+              || git fetch --no-tags --depth=1 origin "${base}"; then
+              if git cat-file -e "${base}^{commit}" && git cat-file -e "${head}^{commit}"; then
+                if git diff --name-only "${base}" "${head}" | grep -Eq '^\.github/workflows/'; then
+                  reason="workflow files changed between ${base} and ${head}"
+                else
+                  run=false
+                  reason="no .github/workflows changes between ${base} and ${head}"
+                fi
+              fi
+            fi
+          fi
+
+          echo "run=${run}" >> "${GITHUB_OUTPUT}"
+          echo "${reason}"
+
       - name: Run actionlint
+        if: ${{ steps.workflows.outputs.run == 'true' }}
         env:
           ACTIONLINT_SHELLCHECK: ${{ inputs.actionlint-shellcheck && 'on' || 'off' }}
         run: |

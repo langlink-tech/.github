@@ -50,12 +50,17 @@ on:
         type: number
         default: 20
       combine-static-checks:
-        description: When true, run lint and typecheck in one job to reduce runner queue tax
+        description: When true (default), lint and typecheck share one install. The lint and typecheck jobs still report, forwarding that result, so required child contexts keep their names.
+        required: false
+        type: boolean
+        default: true
+      single-job:
+        description: When true, run lint, typecheck, tests, and build in one job. Incompatible with required child contexts named lint, typecheck, tests, or build.
         required: false
         type: boolean
         default: false
       actionlint-enabled:
-        description: When true, lint .github/workflows with actionlint before other jobs
+        description: When true, the actionlint job reports. The binary runs only if .github/workflows changed, or if base/head cannot be compared.
         required: false
         type: boolean
         default: true
@@ -77,7 +82,50 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
+      - name: Decide whether workflow files changed
+        id: workflows
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_SHA_VALUE: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          run=true
+          reason="fail-closed: run actionlint"
+
+          base=""
+          head="${GITHUB_SHA_VALUE:-}"
+          case "${EVENT_NAME}" in
+            pull_request|pull_request_target)
+              base="${PR_BASE_SHA:-}"
+              head="${PR_HEAD_SHA:-$head}"
+              ;;
+            push)
+              base="${PUSH_BEFORE_SHA:-}"
+              ;;
+          esac
+
+          if [[ "${base}" =~ ^[0-9a-f]{40}$ && "${head}" =~ ^[0-9a-f]{40}$ && ! "${base}" =~ ^0+$ ]]; then
+            if git cat-file -e "${base}^{commit}" 2>/dev/null \
+              || git fetch --no-tags --depth=1 origin "${base}"; then
+              if git cat-file -e "${base}^{commit}" && git cat-file -e "${head}^{commit}"; then
+                if git diff --name-only "${base}" "${head}" | grep -Eq '^\.github/workflows/'; then
+                  reason="workflow files changed between ${base} and ${head}"
+                else
+                  run=false
+                  reason="no .github/workflows changes between ${base} and ${head}"
+                fi
+              fi
+            fi
+          fi
+
+          echo "run=${run}" >> "${GITHUB_OUTPUT}"
+          echo "${reason}"
+
       - name: Run actionlint
+        if: ${{ steps.workflows.outputs.run == 'true' }}
         env:
           ACTIONLINT_SHELLCHECK: ${{ inputs.actionlint-shellcheck && 'on' || 'off' }}
         run: |
@@ -96,8 +144,47 @@ jobs:
             args+=(-shellcheck=)
           fi
           "${RUNNER_TEMP}/actionlint" "${args[@]}"
+
+  quality-bundle:
+    if: ${{ inputs.single-job }}
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    env:
+      TEST_SHARD: "1/1"
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@b5bffbcb2360ae5436ba619fb7a342d260435799 # packages-read install token
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          node-version: ${{ inputs.node-version }}
+          package-manager: ${{ inputs.package-manager }}
+          package-manager-version: ${{ inputs.package-manager-version }}
+          cache-dependency-path: ${{ inputs.cache-dependency-path }}
+          install-command: ${{ inputs.install-command }}
+
+      - name: Run lint command
+        if: ${{ inputs.lint-command != '' }}
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.lint-command }}
+
+      - name: Run typecheck command
+        if: ${{ inputs.typecheck-command != '' }}
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.typecheck-command }}
+
+      - name: Run test command
+        if: ${{ inputs.test-command != '' }}
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.test-command }}
+
+      - name: Run build command
+        if: ${{ inputs.build-command != '' }}
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.build-command }}
+
   static-checks:
-    if: ${{ inputs.combine-static-checks && (inputs.lint-command != '' || inputs.typecheck-command != '') }}
+    if: ${{ inputs.combine-static-checks && inputs.single-job != true && (inputs.lint-command != '' || inputs.typecheck-command != '') }}
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
@@ -123,13 +210,28 @@ jobs:
         run: ${{ inputs.typecheck-command }}
 
   lint:
-    if: ${{ inputs.combine-static-checks == false && inputs.lint-command != '' }}
+    needs: [static-checks]
+    if: ${{ always() && !cancelled() && inputs.lint-command != '' && inputs.single-job != true }}
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
+      - name: Forward combined static-checks
+        if: ${{ inputs.combine-static-checks }}
+        env:
+          STATIC_RESULT: ${{ needs.static-checks.result }}
+        run: |
+          set -euo pipefail
+          echo "static-checks result=${STATIC_RESULT}"
+          if [ "${STATIC_RESULT}" != "success" ]; then
+            echo "::error::lint is covered by static-checks, which did not succeed (${STATIC_RESULT})."
+            exit 1
+          fi
+
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        if: ${{ inputs.combine-static-checks != true }}
 
       - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@b5bffbcb2360ae5436ba619fb7a342d260435799 # packages-read install token
+        if: ${{ inputs.combine-static-checks != true }}
         with:
           working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
@@ -139,17 +241,33 @@ jobs:
           install-command: ${{ inputs.install-command }}
 
       - name: Run lint command
+        if: ${{ inputs.combine-static-checks != true }}
         working-directory: ${{ inputs.working-directory }}
         run: ${{ inputs.lint-command }}
 
   typecheck:
-    if: ${{ inputs.combine-static-checks == false && inputs.typecheck-command != '' }}
+    needs: [static-checks]
+    if: ${{ always() && !cancelled() && inputs.typecheck-command != '' && inputs.single-job != true }}
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
+      - name: Forward combined static-checks
+        if: ${{ inputs.combine-static-checks }}
+        env:
+          STATIC_RESULT: ${{ needs.static-checks.result }}
+        run: |
+          set -euo pipefail
+          echo "static-checks result=${STATIC_RESULT}"
+          if [ "${STATIC_RESULT}" != "success" ]; then
+            echo "::error::typecheck is covered by static-checks, which did not succeed (${STATIC_RESULT})."
+            exit 1
+          fi
+
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        if: ${{ inputs.combine-static-checks != true }}
 
       - uses: langlink-tech/.github/.github/actions/setup-node-pnpm@b5bffbcb2360ae5436ba619fb7a342d260435799 # packages-read install token
+        if: ${{ inputs.combine-static-checks != true }}
         with:
           working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
@@ -159,11 +277,12 @@ jobs:
           install-command: ${{ inputs.install-command }}
 
       - name: Run typecheck command
+        if: ${{ inputs.combine-static-checks != true }}
         working-directory: ${{ inputs.working-directory }}
         run: ${{ inputs.typecheck-command }}
 
   tests:
-    if: inputs.test-command != ''
+    if: ${{ inputs.test-command != '' && inputs.single-job != true }}
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
     strategy:
@@ -189,7 +308,7 @@ jobs:
         run: ${{ inputs.test-command }}
 
   build:
-    if: inputs.build-command != ''
+    if: ${{ inputs.build-command != '' && inputs.single-job != true }}
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:

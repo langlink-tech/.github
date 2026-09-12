@@ -9,13 +9,20 @@ The shared defaults repository publishes four reusable workflows:
 
 Use them when a repository's core CI gate is a combination of install, lint, typecheck, tests, and build.
 
+Reviewed pins stay on a tagged SHA (`quality-workflows-v5` at
+`7717a53d825005835142669a664b64f52f532304` until a newer tag is published).
+Callers do not pick up `main` automatically. Efficiency defaults
+(`combine-static-checks: true`, path-aware actionlint, optional `single-job`)
+apply only after a caller retargets the post-merge reviewed SHA.
+
 ## Workflow Lint (actionlint)
 
 Both quality workflows define an `actionlint` job (input `actionlint-enabled`,
-default `true`). It lints the caller repository's `.github/workflows` with
-actionlint 1.7.12 (checksum-pinned download). The job has no `needs`
-relationship to the other enabled quality jobs, so GitHub may run them in
-parallel. Set `actionlint-enabled: false` to opt out.
+default `true`). The job always reports so required checks stay present. It
+downloads actionlint 1.7.12 (checksum-pinned) only when `.github/workflows`
+changed, or when base/head cannot be compared (fail closed). The job has no
+`needs` relationship to the other enabled quality jobs, so GitHub may run them
+in parallel. Set `actionlint-enabled: false` to opt out.
 
 Shellcheck findings are gated behind `actionlint-shellcheck` (default `false`). Keep it off
 until the repository's existing shell scripts are clean, then opt in per repo.
@@ -28,6 +35,10 @@ Supports:
 - custom working directory
 - optional lint, typecheck, test, and build commands
 - test sharding through `TEST_SHARD`
+- `combine-static-checks` (default `true`): lint and typecheck share one install;
+  the `lint` and `typecheck` jobs still report by forwarding that result
+- `single-job` (default `false`): one job for lint, typecheck, tests, and build.
+  Do not use this when branch protection requires the child job names
 
 Typical use:
 
@@ -44,6 +55,7 @@ jobs:
       typecheck-command: pnpm typecheck
       test-command: pnpm test
       build-command: pnpm build
+      combine-static-checks: true
       actionlint-enabled: true
       actionlint-shellcheck: false
 ```
