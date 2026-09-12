@@ -27,8 +27,8 @@ Notes:
 - maintainer rollout, migration, and operator documentation is kept in the private governance control plane, not in this public repository
 
 Reusable workflow entrypoints (pin the reviewed immutable SHA; do not leave consumers on mutable `@main`):
-- `langlink-tech/.github/.github/workflows/reusable-node-quality.yml@7717a53d825005835142669a664b64f52f532304 # quality-workflows-v5`
-- `langlink-tech/.github/.github/workflows/reusable-python-quality.yml@7717a53d825005835142669a664b64f52f532304 # quality-workflows-v5`
+- `langlink-tech/.github/.github/workflows/reusable-node-quality.yml@d533f85808e3313fe97ae3a092c62865a6f131e2 # quality-workflows-v6`
+- `langlink-tech/.github/.github/workflows/reusable-python-quality.yml@d533f85808e3313fe97ae3a092c62865a6f131e2 # quality-workflows-v6`
 - `langlink-tech/.github/.github/workflows/reusable-secret-scan.yml@7717a53d825005835142669a664b64f52f532304 # quality-workflows-v5`
 
 Shared setup composites (consumed by the reusable workflows above):

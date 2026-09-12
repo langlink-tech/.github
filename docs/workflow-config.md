@@ -29,11 +29,10 @@ mutable `@main`.
 
 Current reviewed release:
 
-- Tag: `quality-workflows-v5`
-- Immutable SHA: `7717a53d825005835142669a664b64f52f532304`
-- Limited rollback: `quality-workflows-v4` / `73402fee64cf93c846005ca00c7c3d86f1250d95`
-  is callable for Node and Python compatibility only. Secret Scan callers must
-  remain on v5 because v5 preserves least-privilege caller permissions.
+- Tag: `quality-workflows-v6`
+- Immutable SHA: `d533f85808e3313fe97ae3a092c62865a6f131e2`
+- Node/Python rollback: `quality-workflows-v5` / `7717a53d825005835142669a664b64f52f532304`
+- Secret Scan callers remain on v5 (`7717a53d…`) until a reviewed secret-scan pin moves.
 
 Compatibility window: keep the prior SHA callable for at least 14 days after a
 new tag. `@main` is emergency fallback only and must carry an expiry date in the
@@ -44,7 +43,7 @@ Example:
 ```yaml
 jobs:
   quality:
-    uses: langlink-tech/.github/.github/workflows/reusable-node-quality.yml@7717a53d825005835142669a664b64f52f532304 # quality-workflows-v5
+    uses: langlink-tech/.github/.github/workflows/reusable-node-quality.yml@d533f85808e3313fe97ae3a092c62865a6f131e2 # quality-workflows-v6
 ```
 
 ## Reusable Workflow Input Contracts
