@@ -55,4 +55,6 @@ runs:
     - name: Install dependencies
       shell: bash
       working-directory: ${{ inputs.working-directory }}
+      env:
+        NODE_AUTH_TOKEN: ${{ github.token }}
       run: ${{ inputs.install-command }}
