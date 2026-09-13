@@ -203,7 +203,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ inputs.upload-build-artifact-name }}
-          path: ${{ inputs.upload-build-artifact-path }}
+          path: ${{ inputs.working-directory == '.' && inputs.upload-build-artifact-path || format('{0}/{1}', inputs.working-directory, inputs.upload-build-artifact-path) }}
           if-no-files-found: error
           retention-days: 14
           include-hidden-files: true
@@ -357,7 +357,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ inputs.upload-build-artifact-name }}
-          path: ${{ inputs.upload-build-artifact-path }}
+          path: ${{ inputs.working-directory == '.' && inputs.upload-build-artifact-path || format('{0}/{1}', inputs.working-directory, inputs.upload-build-artifact-path) }}
           if-no-files-found: error
           retention-days: 14
           include-hidden-files: true
