@@ -39,6 +39,12 @@ Supports:
   the `lint` and `typecheck` jobs still report by forwarding that result
 - `single-job` (default `false`): one job for lint, typecheck, tests, and build.
   Do not use this when branch protection requires the child job names
+- `upload-build-artifact` (default `false`): after a successful `build` or
+  `quality-bundle` job, upload `upload-build-artifact-path` (default `.output`)
+  as `upload-build-artifact-name` so a later job or CD can reuse it instead of
+  installing and building again. Paths are relative to `working-directory`
+  when that is not `.`; pass a checkout-root-relative path only if you set
+  `working-directory` to `.`.
 
 Typical use:
 
