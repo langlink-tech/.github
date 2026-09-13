@@ -65,6 +65,7 @@ Declared inputs:
 - `build-command`: default empty string
 - `timeout-minutes`: default `20`
 - `combine-static-checks`: default `true` (lint + typecheck share one install; `lint` / `typecheck` jobs still report)
+- `upload-build-artifact`: default `false` (optional artifact from the build or single-job bundle)
 - `single-job`: default `false` (when true, lint + typecheck + tests + build share one job and child check names are omitted)
 - `actionlint-enabled`: default `true`
 - `actionlint-shellcheck`: default `false`

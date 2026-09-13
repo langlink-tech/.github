@@ -69,6 +69,21 @@ on:
         required: false
         type: boolean
         default: false
+      upload-build-artifact:
+        description: When true, upload the build output after a successful build or quality-bundle job so CD or a later job can reuse it.
+        required: false
+        type: boolean
+        default: false
+      upload-build-artifact-name:
+        description: Artifact name used when upload-build-artifact is true.
+        required: false
+        type: string
+        default: node-quality-build
+      upload-build-artifact-path:
+        description: Path uploaded when upload-build-artifact is true. Relative to the reusable checkout root.
+        required: false
+        type: string
+        default: .output
 
 permissions:
   contents: read
@@ -182,6 +197,16 @@ jobs:
         if: ${{ inputs.build-command != '' }}
         working-directory: ${{ inputs.working-directory }}
         run: ${{ inputs.build-command }}
+
+      - name: Upload build artifact
+        if: ${{ inputs.upload-build-artifact && inputs.build-command != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ inputs.upload-build-artifact-name }}
+          path: ${{ inputs.upload-build-artifact-path }}
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: true
 
   static-checks:
     if: ${{ inputs.combine-static-checks && inputs.single-job != true && (inputs.lint-command != '' || inputs.typecheck-command != '') }}
@@ -326,3 +351,13 @@ jobs:
       - name: Run build command
         working-directory: ${{ inputs.working-directory }}
         run: ${{ inputs.build-command }}
+
+      - name: Upload build artifact
+        if: ${{ inputs.upload-build-artifact }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ inputs.upload-build-artifact-name }}
+          path: ${{ inputs.upload-build-artifact-path }}
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: true
