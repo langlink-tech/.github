@@ -11,6 +11,7 @@ It contains:
 - repository contract guidance in `docs/repo-contract.md`
 - reusable workflow config in `docs/workflow-config.md`
 - CI efficiency contract in `docs/cicd-efficiency.md`
+- CI tree reuse action in `docs/ci-tree-reuse.md`
 
 Shared label taxonomy:
 - `kind/*`: bug, feature, refactor, chore, spike, follow-up
@@ -34,6 +35,9 @@ Reusable workflow entrypoints (pin the reviewed immutable SHA; do not leave cons
 Shared setup composites (consumed by the reusable workflows above):
 - `.github/actions/setup-node-pnpm`
 - `.github/actions/setup-python-tooling`
+
+Shared CI composites (called directly by product workflows):
+- `.github/actions/ci-tree-reuse`: skip duplicate checks on a default-branch push whose tree a successful PR or merge-group run already tested. See `docs/ci-tree-reuse.md`.
 
 Caller inventory and migration status live in the private control plane:
 `langlink-tech/plunet-governance` → `docs/github-org/reusable-workflow-caller-matrix.md`

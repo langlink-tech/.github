@@ -1,0 +1,104 @@
+name: CI tree reuse
+description: >
+  Publish tested-tree evidence from a successful pull_request or merge_group run,
+  or resolve whether a default-branch push may reuse that evidence instead of
+  re-running the same checks on an identical tree.
+
+inputs:
+  mode:
+    description: "'publish' (last step of a passing PR / merge-group run) or 'resolve' (first job of a push run)"
+    required: true
+  token:
+    description: Token with contents:read, actions:read and (resolve) pull-requests:read
+    required: false
+    default: ${{ github.token }}
+  workflow:
+    description: "resolve: workflow file whose runs may supply evidence. Defaults to the calling workflow's file"
+    required: false
+    default: ""
+  expected-sha:
+    description: "resolve: pushed commit to check. Defaults to github.sha"
+    required: false
+    default: ""
+  tested-sha:
+    description: "publish: commit the gated jobs checked out. Defaults to github.sha (the actions/checkout default)"
+    required: false
+    default: ""
+  evidence-prefix:
+    description: Artifact name prefix; publish and resolve must agree
+    required: false
+    default: tested-tree
+  retention-days:
+    description: "publish: evidence retention in days"
+    required: false
+    default: "30"
+
+outputs:
+  reuse:
+    description: "resolve: 'true' only when a successful source run tested exactly the pushed tree"
+    value: ${{ steps.resolve.outputs.reuse }}
+  reason:
+    description: "resolve: machine-readable decision reason"
+    value: ${{ steps.resolve.outputs.reason }}
+  tree:
+    description: Pushed tree (resolve) or tested tree (publish)
+    value: ${{ steps.resolve.outputs.tree || steps.publish.outputs.tree }}
+  source-run-id:
+    description: "resolve: run id that supplied the evidence"
+    value: ${{ steps.resolve.outputs.source-run-id }}
+  source-event:
+    description: "resolve: pull_request or merge_group"
+    value: ${{ steps.resolve.outputs.source-event }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate mode
+      if: inputs.mode != 'publish' && inputs.mode != 'resolve'
+      shell: bash
+      env:
+        MODE: ${{ inputs.mode }}
+      run: |
+        echo "::error::Unsupported mode '${MODE}'. Use 'publish' or 'resolve'."
+        exit 1
+
+    - name: Resolve tested-tree reuse
+      id: resolve
+      if: inputs.mode == 'resolve'
+      shell: bash
+      env:
+        INPUT_MODE: resolve
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_WORKFLOW: ${{ inputs.workflow }}
+        INPUT_EXPECTED_SHA: ${{ inputs.expected-sha }}
+        INPUT_EVIDENCE_PREFIX: ${{ inputs.evidence-prefix }}
+      run: node "$GITHUB_ACTION_PATH/reuse.mjs"
+
+    - name: Name the tested tree
+      id: publish
+      if: inputs.mode == 'publish'
+      shell: bash
+      env:
+        INPUT_MODE: publish
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_TESTED_SHA: ${{ inputs.tested-sha }}
+        INPUT_EVIDENCE_PREFIX: ${{ inputs.evidence-prefix }}
+      run: |
+        set -euo pipefail
+        node "$GITHUB_ACTION_PATH/reuse.mjs"
+
+    - name: Write evidence file
+      if: inputs.mode == 'publish' && steps.publish.outputs.publish == 'true'
+      shell: bash
+      env:
+        TREE: ${{ steps.publish.outputs.tree }}
+      run: printf '%s\n' "$TREE" > "$RUNNER_TEMP/ci-tree-reuse-evidence"
+
+    - name: Publish tested-tree evidence
+      if: inputs.mode == 'publish' && steps.publish.outputs.publish == 'true'
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: ${{ inputs.evidence-prefix }}-${{ steps.publish.outputs.tree }}
+        path: ${{ runner.temp }}/ci-tree-reuse-evidence
+        if-no-files-found: error
+        retention-days: ${{ inputs.retention-days }}
