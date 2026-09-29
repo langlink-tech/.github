@@ -34,6 +34,11 @@ put `paths:` on a required workflow (a skipped workflow never reports).
 Same-repository pull requests should not also bill a duplicate `push` run on
 the same SHA. Keep `pull_request` for forks.
 
+A default-branch `push` after a merge has a new SHA but usually the same tree
+that the PR or merge-group run already tested. Use
+[ci-tree-reuse](ci-tree-reuse.md) to skip tree-only checks on that push when
+the evidence proves the tree was tested; build and release gates still run.
+
 If change detection cannot resolve base and head, run the full gate.
 
 ## Cancel superseded PR work, never cancel production
