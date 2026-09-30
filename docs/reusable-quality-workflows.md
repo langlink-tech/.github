@@ -27,6 +27,13 @@ in parallel. Set `actionlint-enabled: false` to opt out.
 Shellcheck findings are gated behind `actionlint-shellcheck` (default `false`). Keep it off
 until the repository's existing shell scripts are clean, then opt in per repo.
 
+`actionlint-inline` (default `false`) runs the same two steps inside a job that
+already runs: `static-checks` (or `quality-bundle` with `single-job`) in the Node
+workflow, `lint` in the Python workflow. The separate `actionlint` job is then
+skipped, which saves one billed job per run; it still runs as a fallback when the
+host job does not. Use it when no branch protection requires an `actionlint`
+context.
+
 ## Node Workflow
 
 Supports:
@@ -37,6 +44,10 @@ Supports:
 - test sharding through `TEST_SHARD`
 - `combine-static-checks` (default `true`): lint and typecheck share one install;
   the `lint` and `typecheck` jobs still report by forwarding that result
+- `forward-child-contexts` (default `true`): set `false` when the caller gates on
+  its own aggregate job (for example `ci-required`). The forwarding `lint` and
+  `typecheck` jobs are then skipped instead of billing a minute each; a failed
+  `static-checks` still fails the reusable workflow
 - `single-job` (default `false`): one job for lint, typecheck, tests, and build.
   Do not use this when branch protection requires the child job names
 - `upload-build-artifact` (default `false`): after a successful `build` or

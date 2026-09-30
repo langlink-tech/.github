@@ -69,6 +69,8 @@ Declared inputs:
 - `single-job`: default `false` (when true, lint + typecheck + tests + build share one job and child check names are omitted)
 - `actionlint-enabled`: default `true`
 - `actionlint-shellcheck`: default `false`
+- `actionlint-inline`: default `false` (when true, actionlint runs inside `static-checks` / `quality-bundle` instead of its own job)
+- `forward-child-contexts`: default `true` (when false with `combine-static-checks`, the forwarding `lint` / `typecheck` jobs are skipped)
 
 Behavior gates:
 
@@ -96,6 +98,7 @@ Declared inputs:
 - `timeout-minutes`: default `20`
 - `actionlint-enabled`: default `true`
 - `actionlint-shellcheck`: default `false`
+- `actionlint-inline`: default `false` (when true, actionlint runs inside the `lint` job instead of its own job)
 
 Behavior gates:
 
