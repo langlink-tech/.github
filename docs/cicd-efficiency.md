@@ -26,6 +26,11 @@ result so required child contexts keep their names.
 Set `single-job: true` only for small repositories. That runs lint, typecheck,
 tests, and build in one job and **drops** the child check names.
 
+Callers that gate on their own aggregate job should also set
+`forward-child-contexts: false` and `actionlint-inline: true`. The forwarding
+jobs and a separate actionlint job each bill at least one minute while doing
+seconds of work.
+
 ## Do not run what did not change
 
 Use job-level `if:` plus an always-run aggregator for required checks. Do not

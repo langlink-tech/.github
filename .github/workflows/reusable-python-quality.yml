@@ -54,6 +54,11 @@ on:
         required: false
         type: boolean
         default: true
+      actionlint-inline:
+        description: When true, run the actionlint check as steps of the lint job instead of a separate job, saving one job per run. Falls back to the separate job when the lint job does not run.
+        required: false
+        type: boolean
+        default: false
       actionlint-shellcheck:
         description: When true, also run shellcheck through actionlint. Opt in per repo after cleaning existing scripts.
         required: false
@@ -65,7 +70,7 @@ permissions:
 
 jobs:
   actionlint:
-    if: ${{ inputs.actionlint-enabled }}
+    if: ${{ inputs.actionlint-enabled && !(inputs.actionlint-inline && inputs.lint-command != '') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -139,6 +144,70 @@ jobs:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Decide whether workflow files changed
+        if: ${{ inputs.actionlint-enabled && inputs.actionlint-inline }}
+        id: workflows
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_SHA_VALUE: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          run=true
+          reason="fail-closed: run actionlint"
+
+          base=""
+          head="${GITHUB_SHA_VALUE:-}"
+          case "${EVENT_NAME}" in
+            pull_request|pull_request_target)
+              base="${PR_BASE_SHA:-}"
+              head="${PR_HEAD_SHA:-$head}"
+              ;;
+            push)
+              base="${PUSH_BEFORE_SHA:-}"
+              ;;
+          esac
+
+          if [[ "${base}" =~ ^[0-9a-f]{40}$ && "${head}" =~ ^[0-9a-f]{40}$ && ! "${base}" =~ ^0+$ ]]; then
+            if git cat-file -e "${base}^{commit}" 2>/dev/null \
+              || git fetch --no-tags --depth=1 origin "${base}"; then
+              if git cat-file -e "${base}^{commit}" && git cat-file -e "${head}^{commit}"; then
+                if git diff --name-only "${base}" "${head}" | grep -Eq '^\.github/workflows/'; then
+                  reason="workflow files changed between ${base} and ${head}"
+                else
+                  run=false
+                  reason="no .github/workflows changes between ${base} and ${head}"
+                fi
+              fi
+            fi
+          fi
+
+          echo "run=${run}" >> "${GITHUB_OUTPUT}"
+          echo "${reason}"
+
+      - name: Run actionlint
+        if: ${{ inputs.actionlint-enabled && inputs.actionlint-inline && steps.workflows.outputs.run == 'true' }}
+        env:
+          ACTIONLINT_SHELLCHECK: ${{ inputs.actionlint-shellcheck && 'on' || 'off' }}
+        run: |
+          set -euo pipefail
+          if ! compgen -G ".github/workflows/*.yml" > /dev/null && ! compgen -G ".github/workflows/*.yaml" > /dev/null; then
+            echo "No workflow files found; skipping actionlint."
+            exit 0
+          fi
+          version="1.7.12"
+          archive="actionlint_${version}_linux_amd64.tar.gz"
+          curl -1sSfL "https://github.com/rhysd/actionlint/releases/download/v${version}/${archive}" -o "${RUNNER_TEMP}/${archive}"
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  ${RUNNER_TEMP}/${archive}" | sha256sum -c -
+          tar -xzf "${RUNNER_TEMP}/${archive}" -C "${RUNNER_TEMP}" actionlint
+          args=(-oneline)
+          if [ "${ACTIONLINT_SHELLCHECK}" = "off" ]; then
+            args+=(-shellcheck=)
+          fi
+          "${RUNNER_TEMP}/actionlint" "${args[@]}"
 
       - uses: langlink-tech/.github/.github/actions/setup-python-tooling@be4f67a71a9db35ca52748af9205d57f6684522a # pinned composite dependencies
         with:
