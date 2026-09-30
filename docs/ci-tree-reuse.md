@@ -20,9 +20,12 @@ Pin the action to a reviewed immutable SHA. Do not use `@main`.
    - first, a `merge_group` run whose head is the pushed commit;
    - otherwise, `pull_request` runs of the same-repository PR whose
      `merge_commit_sha` is the pushed commit and whose base is the pushed branch.
+   The latest applicable run wins: if the newest completed same-repository
+   candidate run did not succeed (failed, cancelled, timed out), an older
+   success is not used (`newer-source-run-not-successful`, since v2).
 3. Any missing input, API error, fork head, failed or cancelled source run,
-   expired artifact, or tree mismatch returns `reuse=false`. The caller then
-   runs its full graph.
+   newer unsuccessful run, expired artifact, or tree mismatch returns
+   `reuse=false`. The caller then runs its full graph.
 
 The evidence is only as strong as the source run. Publish it only from a run
 that executed every job the push would skip. If PR runs select a subset (for
@@ -126,7 +129,7 @@ passed, so a failed run never publishes evidence.
 | Output | Meaning |
 | --- | --- |
 | `reuse` | `true` only when the pushed tree was tested by a successful source run |
-| `reason` | `pull_request-tested-this-tree`, `merge_group-tested-this-tree`, `not-a-push`, `missing-input`, `tree-unavailable`, `no-merge-group-or-merged-pr`, `no-successful-source-run`, `tested-tree-mismatch`, `github-api-error` |
+| `reason` | `pull_request-tested-this-tree`, `merge_group-tested-this-tree`, `not-a-push`, `missing-input`, `tree-unavailable`, `no-merge-group-or-merged-pr`, `no-successful-source-run`, `newer-source-run-not-successful`, `tested-tree-mismatch`, `github-api-error` |
 | `tree` | Pushed tree (resolve) or tested tree (publish) |
 | `source-run-id`, `source-event` | Run that supplied the evidence |
 

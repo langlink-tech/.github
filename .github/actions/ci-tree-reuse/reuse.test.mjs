@@ -73,6 +73,32 @@ describe("resolveTreeReuse", () => {
     assert.equal((await resolve(fetchImpl)).runId, 99);
   });
 
+  it("runs full CI when a newer run of the same head failed after an older success", async () => {
+    const newerFailure = { ...prRun, id: 100, conclusion: "failure", created_at: "2026-09-29T00:00:00Z" };
+    const result = await resolve(github({ "/actions/workflows/ci.yml/runs?pull_request": { workflow_runs: [prRun, newerFailure] } }));
+    assert.deepEqual(result, { reuse: false, reason: "newer-source-run-not-successful", tree, runId: 100, pr: 7 });
+  });
+
+  it("runs full CI when the newest merge-group run was cancelled after an older success", async () => {
+    const newerCancel = { ...mgRun, id: 78, conclusion: "cancelled", created_at: "2026-09-28T00:02:00Z" };
+    const result = await resolve(github({ "/actions/workflows/ci.yml/runs?merge_group": { workflow_runs: [mgRun, newerCancel] } }));
+    assert.equal(result.reuse, false);
+    assert.equal(result.reason, "newer-source-run-not-successful");
+  });
+
+  it("still reuses when an older run failed and the newest run succeeded", async () => {
+    const olderFailure = { ...prRun, id: 98, conclusion: "failure", created_at: "2026-09-27T00:00:00Z" };
+    const result = await resolve(github({ "/actions/workflows/ci.yml/runs?pull_request": { workflow_runs: [olderFailure, prRun] } }));
+    assert.equal(result.reuse, true);
+    assert.equal(result.runId, 99);
+  });
+
+  it("ignores newer runs from forks when choosing the latest applicable run", async () => {
+    const forkFailure = { ...prRun, id: 100, conclusion: "failure", created_at: "2026-09-29T00:00:00Z", head_repository: { full_name: "fork/example" } };
+    const result = await resolve(github({ "/actions/workflows/ci.yml/runs?pull_request": { workflow_runs: [prRun, forkFailure] } }));
+    assert.equal(result.reuse, true);
+  });
+
   const failClosed = [
     ["not-a-push", {}, { event: "pull_request" }],
     ["missing-input", {}, { token: "" }],

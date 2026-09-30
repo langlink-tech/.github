@@ -77,11 +77,19 @@ export async function resolveTreeReuse({
       candidates.push(...list(prRuns, "workflow_runs").filter((run) => run?.head_sha === head && run.event === "pull_request"));
     }
 
-    const successful = candidates
-      .filter((run) => run.conclusion === "success" && run.head_repository?.full_name === repository)
-      .sort((left, right) => String(right.created_at || "").localeCompare(String(left.created_at || "")));
+    const newestFirst = (left, right) =>
+      String(right.created_at || "").localeCompare(String(left.created_at || "")) || (right.id || 0) - (left.id || 0);
+    const sameRepository = candidates
+      .filter((run) => run.head_repository?.full_name === repository)
+      .sort(newestFirst);
+    const successful = sameRepository.filter((run) => run.conclusion === "success");
     if (successful.length === 0) {
       return { reuse: false, reason: "no-successful-source-run", tree: pushedTree, ...(pr && { pr: pr.number }) };
+    }
+    // Latest applicable run wins: a newer completed run that did not succeed (failure,
+    // cancelled, timed out, ...) supersedes any older success, so run full CI.
+    if (sameRepository[0].conclusion !== "success") {
+      return { reuse: false, reason: "newer-source-run-not-successful", tree: pushedTree, runId: sameRepository[0].id, ...(pr && { pr: pr.number }) };
     }
 
     const evidence = `${prefix}-${pushedTree}`;
