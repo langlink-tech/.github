@@ -20,7 +20,10 @@ never overrides a higher one.
 | P2 | Never rerun an identical check | Reuse a result only when every input is identical. |
 
 **P0 in practice.** Required contexts report on every event through an
-aggregator: an intended skip passes, anything else fails. GitHub's implicit
+aggregator: an intended skip passes, anything else fails. A context that the
+PR router reads (`plunet-governance` `deploy/pr-router/scope.json`) must
+conclude `success`, not `skipped`: gate that job's expensive steps instead of
+skipping the job. GitHub's implicit
 `success()` checks transitive `needs`, so a job downstream of a possibly
 skipped job needs `${{ !cancelled() && ... }}`. Prove which jobs run per
 event with a structure test.
