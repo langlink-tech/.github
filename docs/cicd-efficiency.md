@@ -8,6 +8,15 @@ and rollout waves live in `langlink-tech/plunet-governance`
 These rules do not override Action SHA pins, least-privilege `permissions`,
 deploy health checks, or named deploy-contract classes.
 
+## Budget before you add a workflow
+
+Every new workflow, new job, or widened trigger states its expected billed
+minutes per month in the pull request: runs per month times jobs per run
+times minutes per job, each rounded up to a whole minute. Prefer adding a
+step to a job that already installed dependencies over adding a job. The
+organization gets 50,000 included minutes per month; the weekly usage report
+in the governance control plane alerts on projections above 80%.
+
 ## Two clocks
 
 Optimize pull-request **wall-clock** (time until the required aggregator is

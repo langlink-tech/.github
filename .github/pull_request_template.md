@@ -25,6 +25,7 @@
 - [ ] Tests or verification cover the intended behavior.
 - [ ] New config or operational changes are documented when applicable.
 - [ ] I reviewed the diff for accidental unrelated changes.
+- [ ] If this adds a workflow, a job, or a trigger: the Test Plan states the expected billed Actions minutes per month (see `docs/cicd-efficiency.md`).
 
 ## Test Plan
 
