@@ -8,6 +8,37 @@ and rollout waves live in `langlink-tech/plunet-governance`
 These rules do not override Action SHA pins, least-privilege `permissions`,
 deploy health checks, or named deploy-contract classes.
 
+## Principles
+
+Every optimization below applies these in priority order. A lower principle
+never overrides a higher one.
+
+| | Principle | Rule |
+| --- | --- | --- |
+| P0 | Correctness first | Savings never buy a missed check. Missing, stale, or ambiguous evidence fails closed to the full gate. |
+| P1 | Run only what the change affects | Changed paths plus their dependents. Declared global triggers force the full gate. |
+| P2 | Never rerun an identical check | Reuse a result only when every input is identical. |
+
+**P0 in practice.** Required contexts report on every event through an
+aggregator: an intended skip passes, anything else fails. GitHub's implicit
+`success()` checks transitive `needs`, so a job downstream of a possibly
+skipped job needs `${{ !cancelled() && ... }}`. Prove which jobs run per
+event with a structure test.
+
+**P1 in practice.** Global triggers include lockfiles, toolchain pins,
+workflow and action files, shared config, generated code, and cross-repository
+contracts. Path-gated repositories keep a periodic full-coverage run so an
+incomplete dependency map cannot hide drift. Estimate savings by replaying
+recent real pull requests, not by intuition.
+
+**P2 in practice.** The inputs are the integration tree, pinned tool and
+action versions, the runner image, and external inputs. A PR-head result does
+not cover a different merged tree. Checks that read other repositories, live
+services, advisories, or the clock are not tree-pure and keep running. Merge
+queue alone saves nothing: it swaps the default-branch push run for a
+merge-group run. To restart one job, rerun failed jobs only. Do not push empty
+commits or re-trigger whole workflows for that.
+
 ## Budget before you add a workflow
 
 Every new workflow, new job, or widened trigger states its expected billed
