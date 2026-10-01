@@ -71,6 +71,7 @@ Declared inputs:
 - `actionlint-shellcheck`: default `false`
 - `actionlint-inline`: default `false` (when true, actionlint runs inside `static-checks` / `quality-bundle` instead of its own job)
 - `forward-child-contexts`: default `true` (when false with `combine-static-checks`, the forwarding `lint` / `typecheck` jobs are skipped)
+- `lint-packages-token`: default `false` (when true, `lint-command` receives `NODE_AUTH_TOKEN`, the job's `packages: read` token, so a GitHub Packages check can run inside `static-checks` instead of its own job)
 
 Behavior gates:
 

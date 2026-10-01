@@ -74,6 +74,11 @@ on:
         required: false
         type: boolean
         default: true
+      lint-packages-token:
+        description: When true, the lint command receives NODE_AUTH_TOKEN (the job's packages:read token, the same one the install step already gets). Opt in when lint-command carries a GitHub Packages check such as a package consume smoke, so that check does not need a job of its own.
+        required: false
+        type: boolean
+        default: false
       actionlint-shellcheck:
         description: When true, also run shellcheck through actionlint. Opt in per repo after cleaning existing scripts.
         required: false
@@ -255,6 +260,8 @@ jobs:
       - name: Run lint command
         if: ${{ inputs.lint-command != '' }}
         working-directory: ${{ inputs.working-directory }}
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.lint-packages-token && github.token || '' }}
         run: ${{ inputs.lint-command }}
 
       - name: Run typecheck command
@@ -365,6 +372,8 @@ jobs:
       - name: Run lint command
         if: ${{ inputs.lint-command != '' }}
         working-directory: ${{ inputs.working-directory }}
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.lint-packages-token && github.token || '' }}
         run: ${{ inputs.lint-command }}
 
       - name: Run typecheck command
@@ -406,6 +415,8 @@ jobs:
       - name: Run lint command
         if: ${{ inputs.combine-static-checks != true }}
         working-directory: ${{ inputs.working-directory }}
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.lint-packages-token && github.token || '' }}
         run: ${{ inputs.lint-command }}
 
   typecheck:
