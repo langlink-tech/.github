@@ -48,6 +48,10 @@ Supports:
   its own aggregate job (for example `ci-required`). The forwarding `lint` and
   `typecheck` jobs are then skipped instead of billing a minute each; a failed
   `static-checks` still fails the reusable workflow
+- `lint-packages-token` (default `false`): set `true` when `lint-command` carries
+  a GitHub Packages check (for example a package consume smoke). The lint step
+  then receives `NODE_AUTH_TOKEN`, the same `packages: read` token the install
+  step already gets, so the check does not bill a job of its own
 - `single-job` (default `false`): one job for lint, typecheck, tests, and build.
   Do not use this when branch protection requires the child job names
 - `upload-build-artifact` (default `false`): after a successful `build` or
