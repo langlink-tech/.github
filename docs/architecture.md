@@ -31,7 +31,7 @@ community health files. In committed files today, that means:
 | `.github/workflows/issue-form-labels.yml` | On `issues: opened`, maps `Task Type` when present and maps `Area` for any shared form | Local to each repo; not inherited with community health files; consumers must copy it; later edits are not remapped |
 | `.github/workflows/reusable-node-quality.yml` | Reusable Node quality workflow exposed through `workflow_call` | Explicitly called from consuming repos |
 | `.github/workflows/reusable-python-quality.yml` | Reusable Python quality workflow exposed through `workflow_call` | Explicitly called from consuming repos |
-| `.github/workflows/reusable-secret-scan.yml` | Reusable redacted secret scan exposed through `workflow_call` | Explicitly called from consuming repos; inherits the caller's permission ceiling |
+| `.github/workflows/reusable-secret-scan.yml` | Reusable redacted secret scan exposed through `workflow_call` | Explicitly called from consuming repos; explicit `contents: read` permissions |
 | `.github/CODEOWNERS` | Owner rule for this repository itself | Local to this repo; not inherited |
 | `docs/repo-contract.md` | Baseline expectations for active repositories | Read during repo setup and cleanup |
 | `docs/reusable-quality-workflows.md` | Human-readable guide for the reusable workflow interfaces | Read before wiring consumer repos to the shared workflows |

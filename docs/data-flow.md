@@ -118,15 +118,15 @@ Source files:
 Flow:
 
 1. A consumer calls the workflow at the reviewed v5 SHA. The reusable workflow
-   inherits the calling job's permission ceiling rather than raising it.
+   declares `permissions: contents: read`, so it never runs with more than read
+   access even when the calling job grants more.
 2. The job checks out full history, installs Infisical CLI, and writes a redacted
    SARIF report under `reports/security/`.
 3. `blocking: false` makes detected findings report-only; it does not suppress
    scan installation or execution failures.
 4. Artifact upload is attempted with `always()`, while missing report files are
-   ignored. When `upload-sarif: true`, the caller must grant `contents: read`
-   and `security-events: write`; Code Scanning upload is attempted with
-   `continue-on-error`.
+   ignored. `upload-sarif: true` is deprecated and only emits a warning; Code
+   Scanning upload belongs in a caller job that grants `security-events: write`.
 
 The workflow conclusion, artifact presence, and SARIF ingestion are separate
 evidence surfaces. A green run alone proves neither artifact availability nor

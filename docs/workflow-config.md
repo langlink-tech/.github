@@ -17,7 +17,7 @@ and the shared label taxonomy in `langlink-tech/.github`.
 | `.github/workflows/issue-form-labels.yml` | Issue-form taxonomy mapper | Ordinary `issues: opened` workflow; maps `Task Type` when present and maps `Area` on any shared form; not inherited; consumers copy it into their repo |
 | `.github/workflows/reusable-node-quality.yml` | Shared Node CI contract | Reusable workflow with `workflow_call` inputs and `contents: read` permission |
 | `.github/workflows/reusable-python-quality.yml` | Shared Python CI contract | Reusable workflow with `workflow_call` inputs and `contents: read` permission |
-| `.github/workflows/reusable-secret-scan.yml` | Shared secret-scan contract | Reusable report-only-by-default workflow; inherits the caller's permission ceiling and can optionally attempt SARIF upload |
+| `.github/workflows/reusable-secret-scan.yml` | Shared secret-scan contract | Reusable report-only-by-default workflow; explicit `contents: read` permissions; uploads the SARIF report as an artifact |
 | `.github/actions/setup-node-pnpm/action.yml` | Shared Node setup composite | Checkout-independent install setup for pnpm/npm |
 | `.github/actions/setup-python-tooling/action.yml` | Shared Python setup composite | pip/uv install setup shared across quality jobs |
 | `docs/repo-contract.md` | Required repo contract | Defines required files, local command entrypoints, repo archetypes, and the rule to prefer reusable workflows |
@@ -115,13 +115,13 @@ Behavior gates:
 Declared inputs:
 
 - `blocking`: default `false`
-- `upload-sarif`: default `false`
+- `upload-sarif`: default `false` (deprecated; only emits a warning)
 - `timeout-minutes`: default `10`
 
 Behavior gates:
 
-- the workflow declares no top-level permissions and inherits the calling job's permission ceiling
-- every caller needs `contents: read`; `upload-sarif: true` additionally needs `security-events: write`
+- the workflow declares top-level `permissions: contents: read` and never inherits broader caller permissions
+- every caller needs `contents: read`
 - `blocking: false` changes only whether detected secrets fail the scan step
 - artifact upload is attempted with `always()`, but a missing report is ignored
 - SARIF upload is attempted only when enabled and is `continue-on-error`; a green workflow does not prove Code Scanning ingestion
