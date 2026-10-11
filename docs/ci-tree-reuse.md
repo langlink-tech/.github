@@ -124,6 +124,12 @@ jobs:
 the aggregator can call it unconditionally. It runs only after the gate step
 passed, so a failed run never publishes evidence.
 
+The publish step must sit in a job that `needs:` **every** gate the push would
+skip, after a step that checks each of their results, as `ci-required` does
+above. A workflow run concludes `success` even when some jobs were skipped, and
+`resolve` only checks the run conclusion, so evidence published from a job that
+does not depend on every gate can vouch for checks that never ran.
+
 ## Inputs and outputs
 
 | Input | Mode | Default | Meaning |

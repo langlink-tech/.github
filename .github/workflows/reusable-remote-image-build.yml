@@ -26,6 +26,9 @@ on:
         required: true
       SERVER_USER:
         required: true
+      SERVER_HOST_KEY:
+        description: Pinned SSH host key line(s) for SERVER_HOST ("<keytype> <base64>" or full known_hosts lines). Strongly recommended; without it the first connection is trusted (TOFU) and a warning is emitted.
+        required: false
       SLACK_WEBHOOK:
         required: false
 
@@ -75,6 +78,7 @@ jobs:
         env:
           SSH_HOST: ${{ secrets.SERVER_HOST }}
           SSH_USER: ${{ secrets.SERVER_USER }}
+          SSH_HOST_KEY: ${{ secrets.SERVER_HOST_KEY }}
           BUILD_SHA: ${{ steps.meta.outputs.build_sha }}
           PROJECT_NAME: ${{ inputs.project_name }}
           COMPOSE_FILE: ${{ inputs.compose_file }}
@@ -103,10 +107,26 @@ jobs:
 
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
+          HOST_KEY_CHECKING="accept-new"
+          if [ -n "${SSH_HOST_KEY:-}" ]; then
+            : > ~/.ssh/known_hosts
+            while IFS= read -r key_line || [ -n "${key_line}" ]; do
+              key_line="$(printf '%s' "${key_line}" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+              [ -z "${key_line}" ] && continue
+              case "${key_line}" in
+                ssh-*|ecdsa-*|sk-*) printf '%s %s\n' "${SSH_HOST}" "${key_line}" >> ~/.ssh/known_hosts ;;
+                *) printf '%s\n' "${key_line}" >> ~/.ssh/known_hosts ;;
+              esac
+            done <<< "${SSH_HOST_KEY}"
+            chmod 600 ~/.ssh/known_hosts
+            HOST_KEY_CHECKING="yes"
+          else
+            echo "::warning::SERVER_HOST_KEY is not set; trusting the server's SSH host key on first use (StrictHostKeyChecking accept-new). Pin it via the SERVER_HOST_KEY secret."
+          fi
           cat > ~/.ssh/config << EOF
           Host ${SSH_HOST}
               User ${SSH_USER}
-              StrictHostKeyChecking accept-new
+              StrictHostKeyChecking ${HOST_KEY_CHECKING}
               ConnectTimeout 30
           EOF
           chmod 600 ~/.ssh/config
@@ -139,7 +159,14 @@ jobs:
           git fetch --force origin main
           git fetch --force origin "${BUILD_SHA}"
           git merge-base --is-ancestor "${BUILD_SHA}" origin/main
-          git checkout --force --detach "${BUILD_SHA}"
+          # Check for local tracked changes BEFORE checkout and never --force:
+          # a forced checkout would silently discard edits on the production host.
+          if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+            echo "Refusing to check out over local tracked changes on the host"
+            git status --short --untracked-files=no
+            exit 1
+          fi
+          git checkout --detach "${BUILD_SHA}"
           HEAD_SHA="$(git rev-parse HEAD)"
           if [ "${HEAD_SHA}" != "${BUILD_SHA}" ]; then
             echo "Checkout SHA ${HEAD_SHA} does not match triggering SHA ${BUILD_SHA}"
