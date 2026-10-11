@@ -114,7 +114,7 @@ Behavior gates:
 
 Declared inputs:
 
-- `blocking`: default `false`
+- `blocking`: default `true` (set `false` only as an explicit, temporary report-only opt-out)
 - `upload-sarif`: default `false`
 - `timeout-minutes`: default `10`
 

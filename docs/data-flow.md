@@ -119,10 +119,11 @@ Flow:
 
 1. A consumer calls the workflow at the reviewed v5 SHA. The reusable workflow
    inherits the calling job's permission ceiling rather than raising it.
-2. The job checks out full history, installs Infisical CLI, and writes a redacted
+2. The job checks out full history without persisting the job token, installs
+   a pinned, checksum-verified Infisical CLI release, and writes a redacted
    SARIF report under `reports/security/`.
-3. `blocking: false` makes detected findings report-only; it does not suppress
-   scan installation or execution failures.
+3. Findings fail the job by default. An explicit `blocking: false` makes them
+   report-only; it does not suppress scan installation or execution failures.
 4. Artifact upload is attempted with `always()`, while missing report files are
    ignored. When `upload-sarif: true`, the caller must grant `contents: read`
    and `security-events: write`; Code Scanning upload is attempted with

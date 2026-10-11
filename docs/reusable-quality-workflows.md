@@ -117,9 +117,12 @@ must consume it within that window.
 
 ## Secret Scan Workflow
 
-`reusable-secret-scan.yml` runs a redacted Infisical CLI secret scan. It defaults
-to report-only (`blocking: false`); flip `blocking: true` per repo once the
-baseline is clean. The reusable workflow intentionally declares no top-level
+`reusable-secret-scan.yml` runs a redacted Infisical CLI secret scan. It is blocking
+by default (`blocking: true`): detected secrets fail the job. A repo that is
+still cleaning its baseline may pass `blocking: false` explicitly as a
+temporary report-only opt-out. The checkout does not persist the job token
+(`persist-credentials: false`), and the Infisical CLI is a pinned release
+tarball verified by SHA-256 rather than a piped install script. The reusable workflow intentionally declares no top-level
 permissions, so it cannot exceed the calling job's permission ceiling.
 
 `upload-sarif: true` requires the caller to grant both `contents: read` and
@@ -135,7 +138,6 @@ jobs:
       security-events: write
     uses: langlink-tech/.github/.github/workflows/reusable-secret-scan.yml@7717a53d825005835142669a664b64f52f532304 # quality-workflows-v5
     with:
-      blocking: false
       upload-sarif: true
 ```
 
