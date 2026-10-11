@@ -124,7 +124,7 @@ Behavior gates:
 - every caller needs `contents: read`
 - `blocking: false` changes only whether detected secrets fail the scan step
 - artifact upload is attempted with `always()`, but a missing report is ignored
-- SARIF upload is attempted only when enabled and is `continue-on-error`; a green workflow does not prove Code Scanning ingestion
+- `upload-sarif: true` performs no Code Scanning upload (warning only); upload the `infisical-secret-scan` artifact from a caller job with `security-events: write`
 
 ## Taxonomy Config
 
