@@ -119,11 +119,14 @@ must consume it within that window.
 
 `reusable-secret-scan.yml` runs a redacted Infisical CLI secret scan. It defaults
 to report-only (`blocking: false`); flip `blocking: true` per repo once the
-baseline is clean. The reusable workflow intentionally declares no top-level
-permissions, so it cannot exceed the calling job's permission ceiling.
+baseline is clean. The reusable workflow declares an explicit top-level
+`permissions: contents: read`, so it never inherits more than read access from
+the calling job (callers must grant `contents: read`).
 
-`upload-sarif: true` requires the caller to grant both `contents: read` and
-`security-events: write`:
+`upload-sarif` is deprecated and has no effect beyond a warning: the scan job
+cannot hold `security-events: write`. To publish to Code Scanning, download the
+`infisical-secret-scan` artifact in a separate caller job that grants
+`security-events: write` and run `github/codeql-action/upload-sarif` there.
 
 Typical use:
 
@@ -132,18 +135,14 @@ jobs:
   secret-scan:
     permissions:
       contents: read
-      security-events: write
     uses: langlink-tech/.github/.github/workflows/reusable-secret-scan.yml@7717a53d825005835142669a664b64f52f532304 # quality-workflows-v5
     with:
       blocking: false
-      upload-sarif: true
 ```
 
 `blocking: false` only prevents detected secrets from failing the scan step. The
-workflow always attempts artifact upload, but a missing report is ignored. SARIF
-upload is also attempted when enabled and uses `continue-on-error`; therefore a
-green workflow does not prove that an artifact exists or that GitHub Code
-Scanning ingested the SARIF. Verify those two evidence surfaces separately.
+workflow always attempts artifact upload, but a missing report is ignored, so a
+green workflow does not prove that an artifact exists. Verify it separately.
 
 `quality-workflows-v4` remains a limited rollback ref for the Node and Python
 workflows only. Secret Scan callers must stay on v5 because v5 preserves the
