@@ -32,6 +32,14 @@ inputs:
     description: "publish: evidence retention in days"
     required: false
     default: "30"
+  coverage:
+    description: "publish: all (complete graph), frontend or backend; partial markers never establish full reuse"
+    required: false
+    default: all
+  allow-partial:
+    description: "resolve: opt in to exact-tree partial coverage so the caller can run its missing partition"
+    required: false
+    default: "false"
 
 outputs:
   reuse:
@@ -40,6 +48,9 @@ outputs:
   reason:
     description: "resolve: machine-readable decision reason"
     value: ${{ steps.resolve.outputs.reason }}
+  coverage:
+    description: "resolve: all, frontend, backend or none; only all means complete-tree reuse"
+    value: ${{ steps.resolve.outputs.coverage }}
   tree:
     description: Pushed tree (resolve) or tested tree (publish)
     value: ${{ steps.resolve.outputs.tree || steps.publish.outputs.tree }}
@@ -72,6 +83,7 @@ runs:
         INPUT_WORKFLOW: ${{ inputs.workflow }}
         INPUT_EXPECTED_SHA: ${{ inputs.expected-sha }}
         INPUT_EVIDENCE_PREFIX: ${{ inputs.evidence-prefix }}
+        INPUT_ALLOW_PARTIAL: ${{ inputs.allow-partial }}
       run: node "$GITHUB_ACTION_PATH/reuse.mjs"
 
     - name: Name the tested tree
@@ -83,6 +95,7 @@ runs:
         INPUT_TOKEN: ${{ inputs.token }}
         INPUT_TESTED_SHA: ${{ inputs.tested-sha }}
         INPUT_EVIDENCE_PREFIX: ${{ inputs.evidence-prefix }}
+        INPUT_COVERAGE: ${{ inputs.coverage }}
       run: |
         set -euo pipefail
         node "$GITHUB_ACTION_PATH/reuse.mjs"
@@ -98,7 +111,7 @@ runs:
       if: inputs.mode == 'publish' && steps.publish.outputs.publish == 'true'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
-        name: ${{ inputs.evidence-prefix }}-${{ steps.publish.outputs.tree }}
+        name: ${{ steps.publish.outputs.artifact-name }}
         path: ${{ runner.temp }}/ci-tree-reuse-evidence
         if-no-files-found: error
         retention-days: ${{ inputs.retention-days }}

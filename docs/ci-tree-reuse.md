@@ -28,9 +28,19 @@ Pin the action to a reviewed immutable SHA. Do not use `@main`.
    `reuse=false`. The caller then runs its full graph.
 
 The evidence is only as strong as the source run. Publish it only from a run
-that executed every job the push would skip. If PR runs select a subset (for
-example affected tests), publish only from `merge_group`, or use a separate
-`evidence-prefix` for the full-suite run.
+that executed every job the push would skip. If PR runs select a subset, they must not publish the full marker. Since v3,
+callers can publish `coverage: frontend` or `coverage: backend` as a distinct
+`tested-tree-partial-<coverage>-<tree>` marker. Resolution requires explicit
+`allow-partial: "true"`; partial proof always returns `reuse=false` with its
+`coverage`. Legacy callers still run their complete graph.
+
+An opted-in caller may skip only the proven partition and run its complement on
+main, plus migrations/common checks needed for complete coverage. The required
+main job succeeds only after those steps pass. Never compose multiple partial
+markers into a full artifact. Push runs still publish no new full marker.
+The exact tree includes the workflow, scope map, scripts and pinned actions;
+there is no separate mutable profile identity. In opt-in mode the newest valid
+marker wins, ambiguous coverage and incomplete artifact lists fail closed.
 
 ## What a reused push still runs
 
@@ -125,10 +135,13 @@ passed, so a failed run never publishes evidence.
 | `tested-sha` | publish | `github.sha` | Commit the gated jobs checked out; change only if they used a non-default `ref` |
 | `evidence-prefix` | both | `tested-tree` | Must match `^[a-z0-9][a-z0-9-]{0,40}$` and agree between modes |
 | `retention-days` | publish | `30` | Evidence lifetime; a push after expiry runs full CI |
+| `coverage` | publish | `all` | `all`, `frontend` or `backend`; partial markers have distinct names |
+| `allow-partial` | resolve | `false` | Opt in to verified partial coverage; otherwise full markers only |
 
 | Output | Meaning |
 | --- | --- |
-| `reuse` | `true` only when the pushed tree was tested by a successful source run |
+| `reuse` | `true` only for full coverage on the pushed tree from a successful source run |
+| `coverage` | `all`, `frontend`, `backend` or `none`; partial coverage never sets `reuse=true` |
 | `reason` | `pull_request-tested-this-tree`, `merge_group-tested-this-tree`, `not-a-push`, `missing-input`, `tree-unavailable`, `no-merge-group-or-merged-pr`, `no-successful-source-run`, `newer-source-run-not-successful`, `tested-tree-mismatch`, `github-api-error` |
 | `tree` | Pushed tree (resolve) or tested tree (publish) |
 | `source-run-id`, `source-event` | Run that supplied the evidence |

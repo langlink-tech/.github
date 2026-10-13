@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { resolveTestedTree, resolveTreeReuse, workflowFile } from "./reuse.mjs";
+import { evidenceName, resolveTestedTree, resolveTreeReuse, workflowFile } from "./reuse.mjs";
 
 const repository = "langlink-tech/example";
 const sha = "a".repeat(40), head = "b".repeat(40), tree = "c".repeat(40), other = "e".repeat(40);
@@ -42,6 +42,59 @@ function github(overrides = {}) {
 
 const resolve = (fetchImpl, extra = {}) =>
   resolveTreeReuse({ repository, sha, token: "t", workflow: "ci.yml", branch: "main", event: "push", fetchImpl, ...extra });
+
+function coverageGithub(markers, overrides = {}, transform = (x) => x) {
+  const base = github(overrides);
+  return async (url) => {
+    const parsed = new URL(url);
+    const match = /\/actions\/runs\/(\d+)\/artifacts$/.exec(parsed.pathname);
+    if (!match) return base(url);
+    const artifacts = (markers[match[1]] ?? []).filter((x) => x.name === parsed.searchParams.get("name"));
+    return { ok: true, json: async () => transform({ artifacts, total_count: artifacts.length }) };
+  };
+}
+
+describe("opt-in partial coverage", () => {
+  const marker = (coverage, extra = {}) => ({ name: evidenceName("tested-tree", tree, coverage), expired: false, ...extra });
+  const opted = (fetchImpl) => resolve(fetchImpl, { allowPartial: true });
+  it("keeps namespaces distinct and rejects unknown scope", () => {
+    assert.equal(evidenceName("tested-tree", tree), `tested-tree-${tree}`);
+    assert.equal(evidenceName("tested-tree", tree, "frontend"), `tested-tree-partial-frontend-${tree}`);
+    assert.throws(() => evidenceName("tested-tree", tree, "docs"));
+  });
+  for (const coverage of ["all", "frontend", "backend"]) it(`recognizes only ${coverage} from successful exact-tree evidence`, async () => {
+    const result = await opted(coverageGithub({ 99: [marker(coverage)] }));
+    assert.equal(result.coverage, coverage); assert.equal(result.reuse, coverage === "all"); assert.equal(result.runId, 99);
+  });
+  it("keeps legacy callers full-running on partial proof", async () => {
+    assert.equal((await resolve(coverageGithub({ 99: [marker("frontend")] }))).reuse, false);
+  });
+  it("does not override a newer partial marker with older full evidence", async () => {
+    const newer = { ...prRun, id: 100, created_at: "2026-09-29T00:00:00Z" };
+    const result = await opted(coverageGithub({ 99: [marker("all")], 100: [marker("frontend")] }, {
+      "/actions/workflows/ci.yml/runs?pull_request": { workflow_runs: [prRun, newer] },
+    }));
+    assert.equal(result.coverage, "frontend"); assert.equal(result.runId, 100);
+  });
+  for (const markers of [[marker("all"), marker("frontend")], [marker("frontend"), marker("backend")], [marker("frontend"), marker("frontend")]]) it("rejects ambiguous coverage without composing partial markers", async () => {
+    const result = await opted(coverageGithub({ 99: markers }));
+    assert.equal(result.reuse, false); assert.equal(result.reason, "ambiguous-coverage-evidence");
+  });
+  it("rejects expired, mismatched and unavailable proof", async () => {
+    assert.equal((await opted(coverageGithub({ 99: [marker("frontend", { expired: true })] }))).reason, "expired-coverage-evidence");
+    assert.equal((await opted(coverageGithub({ 99: [{ name: evidenceName("tested-tree", other, "frontend"), expired: false }] }))).reason, "tested-tree-mismatch");
+    assert.equal((await opted(github({ [`/git/commits/${sha}`]: 500 }))).reason, "github-api-error");
+  });
+  for (const transform of [(p) => ({ ...p, total_count: 100 }), (p) => ({ ...p, total_count: 2 }), (p) => ({ ...p, total_count: undefined }), (p) => ({ ...p, artifacts: [{ name: "wrong" }] })]) it("fails closed on incomplete or inconsistent artifact lists", async () => {
+    assert.equal((await opted(coverageGithub({ 99: [marker("frontend")] }, {}, transform))).reason, "incomplete-evidence-list");
+  });
+  it("rejects newer failed runs even when older partial proof exists", async () => {
+    const newer = { ...prRun, id: 100, conclusion: "failure", created_at: "2026-09-29T00:00:00Z" };
+    assert.equal((await opted(coverageGithub({ 99: [marker("frontend")] }, {
+      "/actions/workflows/ci.yml/runs?pull_request": { workflow_runs: [prRun, newer] },
+    }))).reason, "newer-source-run-not-successful");
+  });
+});
 
 describe("resolveTreeReuse", () => {
   it("reuses a successful same-repository PR run that recorded this exact tree", async () => {
@@ -190,6 +243,9 @@ describe("CLI entrypoint", () => {
     assert.equal(code, 1);
   });
 
+  it("publish rejects unknown coverage before reading GitHub", async () => {
+    assert.equal((await run({ INPUT_MODE: "publish", INPUT_COVERAGE: "docs", GITHUB_EVENT_NAME: "pull_request" })).code, 1);
+  });
   it("rejects an unknown mode", async () => {
     assert.equal((await run({ INPUT_MODE: "skip" })).code, 1);
   });
