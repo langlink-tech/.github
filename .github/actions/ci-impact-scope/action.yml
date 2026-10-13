@@ -1,0 +1,26 @@
+name: CI impact scope
+description: Classify complete PR file objects into independently verified frontend/backend/full gates; unknown inputs run full.
+inputs:
+  domains-file:
+    description: Repo-owned JSON allowlist, version 1; caller checks it out first.
+    required: true
+outputs:
+  scope:
+    description: docs, frontend, backend, or full. This is not complete tested-tree evidence.
+    value: ${{ steps.scope.outputs.scope }}
+  migrations:
+    description: Whether migration lint is required; full always includes it.
+    value: ${{ steps.scope.outputs.migrations }}
+  reason:
+    description: Classification or full-fallback reason.
+    value: ${{ steps.scope.outputs.reason }}
+runs:
+  using: composite
+  steps:
+    - id: scope
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        DOMAINS_FILE: ${{ inputs.domains-file }}
+      run: node "$GITHUB_ACTION_PATH/impact.mjs"
