@@ -22,5 +22,6 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
+        EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
         DOMAINS_FILE: ${{ inputs.domains-file }}
       run: node "$GITHUB_ACTION_PATH/impact.mjs"

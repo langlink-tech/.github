@@ -8,7 +8,7 @@ const validPath = (p) => typeof p === 'string' && p.length > 0 && !p.startsWith(
 
 export function classify(files, expected, rules) {
   const full = (reason) => ({ scope: 'full', migrations: true, reason });
-  if (!Number.isInteger(expected) || expected <= 0 || expected >= 3000 || !Array.isArray(files) || files.length !== expected) return full('incomplete-files');
+  if (!Number.isInteger(expected) || expected <= 0 || expected >= 3000 || !Array.isArray(files) || files.length !== expected || new Set(files.map((x) => x?.filename)).size !== expected) return full('incomplete-files');
   if (!rules || rules.version !== 1 || !keys.every((k) => rules[k] && ['prefixes', 'files'].every((f) => Array.isArray(rules[k][f]) && rules[k][f].every(validPath)))) return full('invalid-rules');
   const domain = (p) => {
     if (!validPath(p) || control.test(p)) return 'full';
@@ -41,6 +41,8 @@ export function collect(env, read = (endpoint, paginate = false) => JSON.parse(e
     const meta = read(endpoint);
     const pages = read(`${endpoint}/files?per_page=100`, true);
     if (!Array.isArray(pages) || pages.some((p) => !Array.isArray(p))) throw new Error('invalid-pages');
+    const current = read(endpoint);
+    if (!/^[a-f0-9]{40}$/.test(env.EXPECTED_HEAD ?? '') || meta.head?.sha !== env.EXPECTED_HEAD || current.head?.sha !== env.EXPECTED_HEAD || current.changed_files !== meta.changed_files) throw new Error('head-moved');
     return classify(pages.flat(), meta.changed_files, JSON.parse(readFileSync(env.DOMAINS_FILE, 'utf8')));
   } catch {
     // Never turn a missing/unauthorized API response into a partial healthy gate.
