@@ -10,6 +10,12 @@ import { appendFile } from "node:fs/promises";
 const SHA_RE = /^[a-f0-9]{40}$/;
 const PREFIX_RE = /^[a-z0-9][a-z0-9-]{0,40}$/;
 const EVIDENCE_EVENTS = new Set(["pull_request", "merge_group"]);
+const COVERAGES = new Set(["all", "frontend", "backend"]);
+
+export function evidenceName(prefix, tree, coverage = "all") {
+  if (!PREFIX_RE.test(prefix) || !SHA_RE.test(tree) || !COVERAGES.has(coverage)) throw new Error("invalid-evidence-name");
+  return coverage === "all" ? `${prefix}-${tree}` : `${prefix}-partial-${coverage}-${tree}`;
+}
 
 async function githubJson(path, { apiUrl, repository, token, fetchImpl }) {
   const response = await fetchImpl(`${apiUrl}/repos/${repository}${path}`, {
@@ -47,7 +53,7 @@ export async function resolveTestedTree({ repository, sha, token, apiUrl = "http
 }
 
 export async function resolveTreeReuse({
-  repository, sha, token, workflow, branch, event, prefix = "tested-tree",
+  repository, sha, token, workflow, branch, event, prefix = "tested-tree", allowPartial = false,
   apiUrl = "https://api.github.com", fetchImpl = fetch,
 }) {
   if (event !== "push") return { reuse: false, reason: "not-a-push" };
@@ -92,11 +98,34 @@ export async function resolveTreeReuse({
       return { reuse: false, reason: "newer-source-run-not-successful", tree: pushedTree, runId: sameRepository[0].id, ...(pr && { pr: pr.number }) };
     }
 
-    const evidence = `${prefix}-${pushedTree}`;
+    const evidence = evidenceName(prefix, pushedTree);
     for (const run of successful) {
+      if (allowPartial) {
+        const covered = [];
+        for (const coverage of COVERAGES) {
+          const name = evidenceName(prefix, pushedTree, coverage);
+          const payload = await api(`/actions/runs/${run.id}/artifacts?name=${name}&per_page=100`);
+          if (!Number.isInteger(payload?.total_count) || payload.total_count < 0 || payload.total_count >= 100
+            || !Array.isArray(payload.artifacts) || payload.artifacts.length !== payload.total_count
+            || payload.artifacts.some((artifact) => artifact?.name !== name)) {
+            return { reuse: false, reason: "incomplete-evidence-list", tree: pushedTree };
+          }
+          if (payload.total_count > 1) return { reuse: false, reason: "ambiguous-coverage-evidence", tree: pushedTree };
+          if (payload.artifacts.some((artifact) => artifact.expired !== false)) return { reuse: false, reason: "expired-coverage-evidence", tree: pushedTree };
+          if (payload.total_count === 1) covered.push(coverage);
+        }
+        if (covered.length > 1) return { reuse: false, reason: "ambiguous-coverage-evidence", tree: pushedTree };
+        if (covered.length === 1) {
+          const coverage = covered[0];
+          return { reuse: coverage === "all", coverage, reason: coverage === "all" ? `${run.event}-tested-this-tree` : `${run.event}-tested-${coverage}`,
+            tree: pushedTree, runId: run.id, sourceEvent: run.event, ...(pr && { pr: pr.number }) };
+        }
+        // No marker in this successful run: older exact-tree proof may still apply.
+        continue;
+      }
       const artifacts = await api(`/actions/runs/${run.id}/artifacts?name=${evidence}&per_page=10`);
       if (list(artifacts, "artifacts").some((artifact) => artifact?.name === evidence && artifact.expired === false)) {
-        return { reuse: true, reason: `${run.event}-tested-this-tree`, tree: pushedTree, runId: run.id, sourceEvent: run.event, ...(pr && { pr: pr.number }) };
+        return { reuse: true, reason: `${run.event}-tested-this-tree`, tree: pushedTree, runId: run.id, sourceEvent: run.event, ...(allowPartial && { coverage: "all" }), ...(pr && { pr: pr.number }) };
       }
     }
     return { reuse: false, reason: "tested-tree-mismatch", tree: pushedTree, runId: successful[0].id, ...(pr && { pr: pr.number }) };
@@ -120,6 +149,12 @@ async function main() {
   const mode = env.INPUT_MODE;
 
   if (mode === "publish") {
+    const coverage = env.INPUT_COVERAGE || "all";
+    if (!COVERAGES.has(coverage)) {
+      console.log("::error::coverage must be all, frontend or backend");
+      process.exitCode = 1;
+      return;
+    }
     if (!PREFIX_RE.test(env.INPUT_EVIDENCE_PREFIX || "tested-tree")) {
       console.log("::error::evidence-prefix must match ^[a-z0-9][a-z0-9-]{0,40}$");
       process.exitCode = 1;
@@ -137,8 +172,8 @@ async function main() {
       await writeOutputs({ publish: false, tree: "" });
       return;
     }
-    console.log(`publish=true tree=${result.tree}`);
-    await writeOutputs({ publish: true, tree: result.tree });
+    console.log(`publish=true coverage=${coverage} tree=${result.tree}`);
+    await writeOutputs({ publish: true, tree: result.tree, "artifact-name": evidenceName(env.INPUT_EVIDENCE_PREFIX || "tested-tree", result.tree, coverage) });
     return;
   }
 
@@ -150,11 +185,12 @@ async function main() {
       branch: env.GITHUB_REF_NAME,
       event: env.GITHUB_EVENT_NAME,
       prefix: env.INPUT_EVIDENCE_PREFIX || "tested-tree",
+      allowPartial: env.INPUT_ALLOW_PARTIAL === "true",
     });
     const line = `reuse=${result.reuse} reason=${result.reason}`
       + `${result.pr ? ` pr=#${result.pr}` : ""}${result.runId ? ` run=${result.runId}` : ""}`;
     console.log(line);
-    await writeOutputs({ reuse: result.reuse, reason: result.reason, tree: result.tree, "source-run-id": result.runId, "source-event": result.sourceEvent });
+    await writeOutputs({ reuse: result.reuse, coverage: result.coverage || (result.reuse ? "all" : "none"), reason: result.reason, tree: result.tree, "source-run-id": result.runId, "source-event": result.sourceEvent });
     if (env.GITHUB_STEP_SUMMARY) await appendFile(env.GITHUB_STEP_SUMMARY, `CI tree reuse: \`${line}\`\n`, "utf8");
     return;
   }
