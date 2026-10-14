@@ -18,8 +18,8 @@ jobs:
       project_name: TDL
       compose_file: docker-compose.prod.yaml
       search_paths: |
-        /opt/tech-dept/projects/TDL
-        /opt/TDL
+        /srv/<org>/projects/<project>
+        /srv/<project>
       force_rebuild: ${{ inputs.force_rebuild || false }}
     secrets: inherit
 ```
@@ -50,7 +50,12 @@ jobs:
   characters, fail. Newlines remain the documented path separator.
 - Missing `.env` fails. The workflow never copies `.env.example`.
 - `.env` identical to `.env.example` fails.
-- Dirty git checkout fails.
+- Local tracked changes on the host fail the run before checkout; checkout
+  never uses `--force`, so production edits are never silently discarded.
+- Dirty git checkout (including untracked files) after checkout fails.
+- SSH host key: set the optional `SERVER_HOST_KEY` secret (`<keytype> <base64>`
+  or full `known_hosts` lines) to pin the host key (`StrictHostKeyChecking yes`).
+  Without it the workflow warns and trusts the key on first use (`accept-new`).
 - `HEAD` must equal the triggering SHA.
 - Slack notification is skipped when `SLACK_WEBHOOK` is unset; a configured
   webhook uses `curl --fail` and does not claim success on HTTP errors.
