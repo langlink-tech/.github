@@ -25,7 +25,7 @@ for (const f of FILES) {
     const wf = read(f);
     assert.doesNotMatch(wf, /\|\| git fetch /, "bare fetch would now be unauthenticated on private repos");
     const fetches = [...wf.matchAll(/git -c "http\.\$\{GITHUB_SERVER_URL\}\/\.extraheader=AUTHORIZATION: basic \$\(printf 'x-access-token:%s' "\$\{FETCH_TOKEN\}" \| base64 -w0\)"/g)];
-    const decide = [...wf.matchAll(/- name: Decide whether workflow files changed\n((?:\s{8,}.*\n|\s*\n)+?)\s+run: \|/g)];
+    const decide = [...wf.matchAll(/- name: Decide whether workflow files changed\n((?:[ \t]{8,}.*\n|[ \t]*\n)+?)[ \t]+run: \|/g)];
     assert.equal(fetches.length, decide.length);
     for (const [, head] of decide) assert.match(head, /FETCH_TOKEN: \$\{\{ github\.token \}\}/);
     assert.doesNotMatch(wf.split("jobs:")[0], /FETCH_TOKEN/);
@@ -34,7 +34,7 @@ for (const f of FILES) {
 
 function decideScript(f) {
   const wf = read(f);
-  const m = wf.match(/- name: Decide whether workflow files changed\n(?:\s{8,}.*\n|\s*\n)+?\s+run: \|\n((?:\s{10}.*\n|\s*\n)+)/);
+  const m = wf.match(/- name: Decide whether workflow files changed\n(?:[ \t]{8,}.*\n|[ \t]*\n)+?[ \t]+run: \|\n((?:[ \t]{10}.*\n|[ \t]*\n)+)/);
   return m[1].split("\n").map((l) => l.replace(/^ {10}/, "")).join("\n");
 }
 
