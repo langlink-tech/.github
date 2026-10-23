@@ -53,3 +53,7 @@ Engineering entrypoint templates:
 - `templates/engineering-entry-standardization/Taskfile.compose.yml`
 - `templates/engineering-entry-standardization/renovate.json`
 - `templates/engineering-entry-standardization/verification-checklist.md`
+
+## Security docs
+
+- [workflow_run checklist](docs/workflow-run-security.md)
