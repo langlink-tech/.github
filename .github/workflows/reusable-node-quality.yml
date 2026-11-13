@@ -49,6 +49,11 @@ on:
         required: false
         type: number
         default: 20
+      runs-on:
+        description: Runner for every quality job; callers can pin a supported OS without forking this workflow.
+        required: false
+        type: string
+        default: ubuntu-latest
       combine-static-checks:
         description: When true (default), lint and typecheck share one install. The lint and typecheck jobs still report, forwarding that result, so required child contexts keep their names.
         required: false
@@ -107,7 +112,7 @@ permissions:
 jobs:
   actionlint:
     if: ${{ inputs.actionlint-enabled && !(inputs.actionlint-inline && ((inputs.combine-static-checks && inputs.single-job != true && (inputs.lint-command != '' || inputs.typecheck-command != '')) || inputs.single-job)) }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -182,7 +187,7 @@ jobs:
 
   quality-bundle:
     if: ${{ inputs.single-job }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
     env:
       TEST_SHARD: "1/1"
@@ -301,7 +306,7 @@ jobs:
 
   static-checks:
     if: ${{ inputs.combine-static-checks && inputs.single-job != true && (inputs.lint-command != '' || inputs.typecheck-command != '') }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -399,7 +404,7 @@ jobs:
   lint:
     needs: [static-checks]
     if: ${{ always() && !cancelled() && inputs.lint-command != '' && inputs.single-job != true && (inputs.combine-static-checks != true || inputs.forward-child-contexts) }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - name: Forward combined static-checks
@@ -439,7 +444,7 @@ jobs:
   typecheck:
     needs: [static-checks]
     if: ${{ always() && !cancelled() && inputs.typecheck-command != '' && inputs.single-job != true && (inputs.combine-static-checks != true || inputs.forward-child-contexts) }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - name: Forward combined static-checks
@@ -476,7 +481,7 @@ jobs:
 
   tests:
     if: ${{ inputs.test-command != '' && inputs.single-job != true }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
     strategy:
       fail-fast: false
@@ -504,7 +509,7 @@ jobs:
 
   build:
     if: ${{ inputs.build-command != '' && inputs.single-job != true }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
