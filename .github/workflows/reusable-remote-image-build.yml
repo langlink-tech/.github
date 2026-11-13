@@ -221,6 +221,32 @@ jobs:
             echo "notification not configured"
             exit 0
           fi
+          # Wave-23: allowlist notification webhook hosts (SSRF). Empty = no-notify.
+          # Slack hooks + APS Wave-18 Feishu trio only (exact host set; no extra Feishu TLDs).
+          NORMALIZED="$(python3 - "$SLACK_WEBHOOK" <<'PY'
+from urllib.parse import urlparse
+import sys
+raw = (sys.argv[1] if len(sys.argv) > 1 else "").strip()
+if not raw:
+    raise SystemExit(0)
+if "\\" in raw or "\n" in raw or "\r" in raw:
+    raise SystemExit("SLACK_WEBHOOK contains illegal characters")
+parsed = urlparse(raw)
+if parsed.scheme != "https" or parsed.username is not None or parsed.password is not None or "@" in (parsed.netloc or ""):
+    raise SystemExit("SLACK_WEBHOOK must be https without credentials")
+host = (parsed.hostname or "").lower().rstrip(".")
+allowed = {"hooks.slack.com", "open.feishu.cn", "open.larksuite.com", "open.larkoffice.com"}
+if host not in allowed or parsed.port not in (None, 443):
+    raise SystemExit("SLACK_WEBHOOK host not allowlisted: %r" % (host,))
+path = parsed.path or ""
+query = ("?" + parsed.query) if parsed.query else ""
+print("https://%s%s%s" % (host, path, query))
+PY
+)"
+          if [ -z "${NORMALIZED}" ]; then
+            echo "notification not configured"
+            exit 0
+          fi
           if [ "${JOB_STATUS}" = "success" ]; then
             EMOJI="ok"
           else
@@ -230,5 +256,5 @@ jobs:
           payload="$(jq -n --arg text "$MESSAGE" '{text:$text}')"
           curl --fail --silent --show-error -X POST -H 'Content-type: application/json' \
             --data "${payload}" \
-            "${SLACK_WEBHOOK}"
+            "${NORMALIZED}"
           echo "notification sent"

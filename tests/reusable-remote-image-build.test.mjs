@@ -83,3 +83,48 @@ test("documents the publish-needs-every-gate rule and uses no internal host path
   assert.doesNotMatch(remoteDoc, /tech-dept/);
   assert.match(remoteDoc, /SERVER_HOST_KEY/);
 });
+
+test("notification webhook is host-allowlisted before curl (Wave-23)", () => {
+  assert.match(workflow, /hooks\.slack\.com/);
+  assert.match(workflow, /open\.feishu\.cn/);
+  assert.match(workflow, /open\.larksuite\.com/);
+  assert.match(workflow, /open\.larkoffice\.com/);
+  assert.match(workflow, /NORMALIZED=/);
+  const notify = workflow.slice(workflow.indexOf("Send notification"));
+  assert.match(notify, /"\$\{NORMALIZED\}"/);
+  assert.doesNotMatch(notify, /curl[\s\S]*"\$\{SLACK_WEBHOOK\}"/);
+  const allowMatch = notify.match(/allowed = \{([^}]+)\}/);
+  assert.ok(allowMatch);
+  assert.doesNotMatch(allowMatch[1], /feishu\.net/);
+});
+
+test("python allowlist accepts Slack/Feishu and rejects evil hosts", () => {
+  const notify = workflow.slice(workflow.indexOf("Send notification"));
+  const m = notify.match(/python3 - "\$SLACK_WEBHOOK" <<'PY'\n([\s\S]*?)\nPY\n\)"/);
+  assert.ok(m, "python heredoc allowlist snippet missing");
+  const py = m[1];
+  const run = (url) => {
+    try {
+      return execFileSync("python3", ["-", url], {
+        input: py + "\n",
+        env: { ...process.env },
+        encoding: "utf8",
+      }).trim();
+    } catch (err) {
+      const e = /** @type {any} */ (err);
+      throw new Error(String(e.stderr || e.message));
+    }
+  };
+  assert.equal(run("https://hooks.slack.com/services/T/B/x"), "https://hooks.slack.com/services/T/B/x");
+  assert.equal(
+    run("https://open.feishu.cn/open-apis/bot/v2/hook/abc"),
+    "https://open.feishu.cn/open-apis/bot/v2/hook/abc",
+  );
+  assert.equal(
+    run("https://open.larkoffice.com/open-apis/bot/v2/hook/abc"),
+    "https://open.larkoffice.com/open-apis/bot/v2/hook/abc",
+  );
+  assert.throws(() => run("https://evil.example/hook"), /not allowlisted/);
+  assert.throws(() => run("https://open.feishu.net/open-apis/bot/v2/hook/x"), /not allowlisted/);
+  assert.throws(() => run("http://hooks.slack.com/x"), /https without credentials/);
+});
