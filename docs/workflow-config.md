@@ -64,6 +64,7 @@ Declared inputs:
 - `test-shards`: default `["1/1"]`
 - `build-command`: default empty string
 - `timeout-minutes`: default `20`
+- `runs-on`: default `ubuntu-latest` (optional runner for every quality job; callers can pin a supported OS without changing this workflow)
 - `combine-static-checks`: default `true` (lint + typecheck share one install; `lint` / `typecheck` jobs still report)
 - `upload-build-artifact`: default `false` (optional artifact from the build or single-job bundle)
 - `single-job`: default `false` (when true, lint + typecheck + tests + build share one job and child check names are omitted)
