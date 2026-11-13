@@ -38,5 +38,6 @@ Optional but strongly recommended:
 - Treat rollback compatibility per workflow: `quality-workflows-v5` / `7717a53d…` remains callable for Secret Scan and as Node/Python rollback; Secret Scan callers stay on v5 until a reviewed secret-scan pin moves.
 - Keep repo-specific jobs only for domain invariants, deployment packaging, contract checks, or environment-specific smoke tests.
 - Every CI/CD workflow should set least-privilege `permissions`, `concurrency` with `cancel-in-progress` for PR runs, and `timeout-minutes` on quality jobs.
+- Workflows that use `workflow_run` must follow `docs/workflow-run-hygiene.md` (never combine untrusted PR-head checkout with secrets).
 - Follow `docs/cicd-efficiency.md`: one install per cheap static job, skip unchanged work behind an aggregator, reuse CI artifacts in CD, and do not double-run `pull_request` plus `push` on the same SHA.
 - Complex monorepos may keep local orchestration (for example change detection) and still share setup composites from `langlink-tech/.github`.
