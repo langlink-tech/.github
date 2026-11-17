@@ -122,11 +122,11 @@ by default (`blocking: true`): detected secrets fail the job. A repo that is
 still cleaning its baseline may pass `blocking: false` explicitly as a
 temporary report-only opt-out. The checkout does not persist the job token
 (`persist-credentials: false`), and the Infisical CLI is a pinned release
-tarball verified by SHA-256 rather than a piped install script. The reusable workflow intentionally declares no top-level
-permissions, so it cannot exceed the calling job's permission ceiling.
+tarball verified by SHA-256 rather than a piped install script. The reusable workflow declares an explicit top-level
+`permissions: contents: read`, so it never inherits more than read access from
+the calling job (callers must grant `contents: read`).
 
-`upload-sarif: true` requires the caller to grant both `contents: read` and
-`security-events: write`:
+SARIF upload is still attempted when `upload-sarif: true` and is `continue-on-error`, but the explicit `contents: read` ceiling means Code Scanning will reject it; publish SARIF from a caller job that downloads the `infisical-secret-scan` artifact and grants `security-events: write`.
 
 Typical use:
 
@@ -135,10 +135,7 @@ jobs:
   secret-scan:
     permissions:
       contents: read
-      security-events: write
     uses: langlink-tech/.github/.github/workflows/reusable-secret-scan.yml@7717a53d825005835142669a664b64f52f532304 # quality-workflows-v5
-    with:
-      upload-sarif: true
 ```
 
 `blocking: false` only prevents detected secrets from failing the scan step. The
